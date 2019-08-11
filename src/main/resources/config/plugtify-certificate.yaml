@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManageCertificate
+metadata:
+  name: plugtify-certificacte
+spec:
+  domains:
+    - plugtify.com

@@ -1,5 +1,5 @@
 apiVersion: networking.gke.io/v1beta1
-kind: ManageCertificate
+kind: ManagedCertificate
 metadata:
   name: plugtify-certificacte
 spec:

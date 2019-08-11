@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: plugtify-ingress
   annotations:
-    kubernetes.io/ingress.global-static-ip: 34.98.125.60
+    kubernetes.io/ingress.global-static-ip-name: 34.98.125.60
     networking.gke.io/managed-certificates: plugtify-certificacte
 spec:
   backend:

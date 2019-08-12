@@ -1,4 +1,4 @@
-package com.edtech.config;
+package com.edtech.plugtify.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

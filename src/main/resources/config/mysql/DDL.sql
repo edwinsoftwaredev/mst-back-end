@@ -1,4 +1,4 @@
-create table user(
+create table tbl_user(
     id bigint(20) auto_increment,
     login varchar(50) not null,
     password_hash varchar(60) not null,

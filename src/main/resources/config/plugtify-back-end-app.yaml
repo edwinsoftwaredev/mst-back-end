@@ -19,9 +19,9 @@ spec:
           name: plugtify-back-end
           env:
             - name: PLUGTIFY_DB_HOST
-              value: mysql
+              value: "mysql"
             - name: PLUGTIFY_DB_PORT
-              value: 3306
+              value: "3306"
             - name: PLUGTIFY_DB_PASSWORD
               valueFrom:
                 secretKeyRef:

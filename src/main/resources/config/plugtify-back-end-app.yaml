@@ -27,4 +27,4 @@ spec:
                   key: password
           ports:
             - containerPort: 9090
-              name: plugtify-back-end
+              name: plugtify-be

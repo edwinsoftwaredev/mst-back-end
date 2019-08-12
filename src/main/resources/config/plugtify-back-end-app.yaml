@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plugtify-back-end
+  labels:
+    app: plugtify-back-end
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plugtify-back-end
+  template:
+    metadata:
+      labels:
+        app: plugtify-back-end
+    spec:
+      containers:
+        - image: gcr.io/${PROJECT_ID}/plugtify-back-end
+          name: plugtify-back-end
+          env:
+            - name: PLUGTIFY_DB_HOST
+              value: mysql:3306
+            - name: PLUGTIFY_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: password
+          ports:
+            - containerPort: 9090
+              name: plugtify-back-end

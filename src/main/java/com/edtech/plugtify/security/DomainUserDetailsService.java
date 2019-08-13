@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * component to check and create in spring security context the user(UserDetails),
- * validating it´s username and password
+ * component to check and then create in spring security context, by the authentication manager, a user(UserDetails),
+ * validating it´s username and password and check if the user is in database
  */
 
 @Component("userDetailsService")
@@ -34,17 +34,17 @@ public class DomainUserDetailsService implements UserDetailsService {
 
         if(new EmailValidator().isValid(login, null)) {
             return this.userRepository.findOneByEmailIgnoreCase(login)
-                    .map(user -> this.createSpringSecurityUser(user))
+                    .map(this::createSpringSecurityUser)
                     .orElseThrow(() -> new UsernameNotFoundException("User with username: " + username + " was not found!"));
         }
 
         return this.userRepository.findOneByLoginIgnoreCase(login)
-                .map(user -> this.createSpringSecurityUser(user))
+                .map(this::createSpringSecurityUser)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username: " + username + " was not found!"));
 
     }
 
-    public User createSpringSecurityUser(com.edtech.plugtify.domain.User user) {
+    private User createSpringSecurityUser(com.edtech.plugtify.domain.User user) {
 
         // remember set authorities
 

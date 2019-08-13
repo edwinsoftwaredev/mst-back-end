@@ -1,4 +1,4 @@
-package com.edtech.plugtify.web.rest.errors;
+package com.edtech.plugtify.security;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.zalando.problem.spring.web.advice.ProblemHandling;

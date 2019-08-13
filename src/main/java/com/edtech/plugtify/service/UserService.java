@@ -3,6 +3,8 @@ package com.edtech.plugtify.service;
 import com.edtech.plugtify.domain.User;
 import com.edtech.plugtify.repository.UserRepository;
 import com.edtech.plugtify.service.dto.UserDTO;
+import com.edtech.plugtify.web.rest.errors.EmailAlreadyUsedException;
+import com.edtech.plugtify.web.rest.errors.LoginAlreadyUsedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -46,11 +48,15 @@ public class UserService {
     public User registerUser(UserDTO userDTO, String password) {
 
         this.userRepository.findOneByLogin(userDTO.getLogin().toLowerCase().trim()).ifPresent(user -> {
+            // If login is found throw custom exception
             // throw username or login already used exception
+            throw new LoginAlreadyUsedException();
         });
 
         this.userRepository.findOneByEmail(userDTO.getEmail().toLowerCase().trim()).ifPresent(user -> {
+            // If email is found throw custom exception
             // throw user email already used excepcion
+            throw new EmailAlreadyUsedException();
         });
 
         // create new User

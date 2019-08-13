@@ -5,12 +5,15 @@ import com.edtech.plugtify.security.DomainUserDetailsService;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 import javax.annotation.PostConstruct;
 
@@ -22,17 +25,22 @@ import javax.annotation.PostConstruct;
  */
 
 @Configuration
+@EnableWebSecurity
+@Import(SecurityProblemSupport.class)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private AuthenticationManagerBuilder authenticationManagerBuilder;
     private UserDetailsService userDetailsService;
+    private SecurityProblemSupport securityProblemSupport;
 
     public SecurityConfiguration(
             AuthenticationManagerBuilder authenticationManagerBuilder,
-            UserDetailsService userDetailsService
+            UserDetailsService userDetailsService,
+            SecurityProblemSupport securityProblemSupport
     ) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.userDetailsService = userDetailsService;
+        this.securityProblemSupport = securityProblemSupport;
     }
 
     /**
@@ -56,12 +64,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
             .httpBasic()
             .and()
-            .authorizeRequests()
-                .antMatchers("/", "/login").permitAll()
-                .antMatchers("/api/register").permitAll()
-                .antMatchers("/api/**").authenticated()
-                .antMatchers("/api/managment/**").hasAnyAuthority(AuthorityConstants.ROLE_ADMIN)
-                .anyRequest().denyAll();
+                .exceptionHandling()
+                .authenticationEntryPoint(this.securityProblemSupport)
+                .accessDeniedHandler(this.securityProblemSupport)
+            .and()
+                .authorizeRequests()
+                    .antMatchers("/", "/login").permitAll()
+                    .antMatchers("/api/register").permitAll()
+                    .antMatchers("/api/**").authenticated()
+                    .antMatchers("/api/managment/**").hasAnyAuthority(AuthorityConstants.ROLE_ADMIN)
+                    .anyRequest().denyAll();
     }
 
     @Bean

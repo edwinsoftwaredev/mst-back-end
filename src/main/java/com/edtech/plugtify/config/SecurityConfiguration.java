@@ -35,6 +35,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * the execution of this method is after depency injection is done and before any
+     * other initialization
+     */
     @PostConstruct
     public void init() {
         try {

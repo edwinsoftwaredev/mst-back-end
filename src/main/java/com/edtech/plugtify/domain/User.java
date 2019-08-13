@@ -8,6 +8,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+/**
+ * Entity: User
+ */
+
 @Entity
 @Table(name="tbl_user")
 public class User {
@@ -31,7 +35,7 @@ public class User {
     @JsonIgnore
     @Size(min = 6, max = 60)
     @Column(name = "password_hash", length = 60, nullable = false)
-    private String password_hash;
+    private String password;
 
     @Override
     public String toString() {
@@ -62,11 +66,11 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword_hash() {
-        return password_hash;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPassword_hash(String password_hash) {
-        this.password_hash = password_hash;
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

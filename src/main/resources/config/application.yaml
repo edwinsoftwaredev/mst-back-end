@@ -12,3 +12,7 @@ spring:
   http:
     encoding:
       force: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true

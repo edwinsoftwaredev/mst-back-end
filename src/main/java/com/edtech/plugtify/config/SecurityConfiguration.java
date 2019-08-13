@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 import javax.annotation.PostConstruct;
@@ -64,6 +65,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
             .httpBasic()
             .and()
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(this.securityProblemSupport)
                 .accessDeniedHandler(this.securityProblemSupport)
@@ -71,6 +75,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers("/", "/login").permitAll()
                     .antMatchers("/api/register").permitAll()
+                    .antMatchers("/api/csrf-token").permitAll()
                     .antMatchers("/api/**").authenticated()
                     .antMatchers("/api/managment/**").hasAnyAuthority(AuthorityConstants.ROLE_ADMIN)
                     .anyRequest().denyAll();

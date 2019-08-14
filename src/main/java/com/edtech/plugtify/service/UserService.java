@@ -2,6 +2,7 @@ package com.edtech.plugtify.service;
 
 import com.edtech.plugtify.domain.User;
 import com.edtech.plugtify.repository.UserRepository;
+import com.edtech.plugtify.security.SecurityUtils;
 import com.edtech.plugtify.service.dto.UserDTO;
 import com.edtech.plugtify.web.rest.errors.EmailAlreadyUsedException;
 import com.edtech.plugtify.web.rest.errors.LoginAlreadyUsedException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * component to manage users
@@ -72,6 +74,10 @@ public class UserService {
 
         return newUser;
 
+    }
+
+    public Optional<User> getCurrentUser() {
+        return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneByLogin);
     }
 
     // Clear cache by the given cache names

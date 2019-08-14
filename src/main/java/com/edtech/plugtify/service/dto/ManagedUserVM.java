@@ -1,5 +1,6 @@
 package com.edtech.plugtify.service.dto;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 /**
@@ -8,6 +9,7 @@ import javax.validation.constraints.Size;
 
 public class ManagedUserVM extends UserDTO {
 
+    @NotBlank
     @Size(min = 6, max = 60)
     private String password;
 

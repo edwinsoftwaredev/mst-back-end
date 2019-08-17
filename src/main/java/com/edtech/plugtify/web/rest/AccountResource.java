@@ -25,7 +25,7 @@ public class AccountResource {
      * @param managedUserVM userDTO with password --> Describe an User Entity
      * @return HttpResponse with status code OK
      */
-    @PostMapping("/account")
+    @PostMapping("/register")
     public ResponseEntity<Void> registerUser(@Valid @RequestBody ManagedUserVM managedUserVM) {
         this.userService.registerUser(managedUserVM, managedUserVM.getPassword());
 

@@ -67,6 +67,9 @@ public class UserService {
         newUser.setEmail(userDTO.getEmail().toLowerCase().trim());
         newUser.setPassword(this.passwordEncoder.encode(password));
 
+        // set default false to hasToken
+        newUser.setHasToken(false);
+
         this.userRepository.save(newUser);
         this.clearUserCaches(newUser);
 

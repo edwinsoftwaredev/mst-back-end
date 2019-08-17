@@ -42,6 +42,9 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @JoinColumn(name = "token_id", referencedColumnName = "id")
     private Token token;
 
+    @Column(name = "has_token")
+    private Boolean hasToken;
+
     @Override
     public String toString() {
         return "User:{}";
@@ -51,8 +54,17 @@ public class User extends AbstractAuditingEntity implements Serializable {
         return token;
     }
 
+
     public void setToken(Token token) {
         this.token = token;
+    }
+
+    public Boolean getHasToken() {
+        return hasToken;
+    }
+
+    public void setHasToken(Boolean hasToken) {
+        this.hasToken = hasToken;
     }
 
     public Long getId() {

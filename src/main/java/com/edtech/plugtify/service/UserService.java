@@ -79,6 +79,7 @@ public class UserService {
 
     }
 
+    @Transactional(readOnly = true)
     public Optional<User> getCurrentUser() {
         return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneByLogin);
     }

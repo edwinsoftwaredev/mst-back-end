@@ -29,9 +29,12 @@ public class UserDTO {
     @Size(max = 254)
     private String email;
 
+    private Boolean hasToken;
+
     public UserDTO(User user) {
         this.id = user.getId();
         this.login = user.getLogin();
         this.email = user.getEmail();
+        this.hasToken = user.getHasToken();
     }
 }

@@ -74,6 +74,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .and()
                 .logout()
                 .logoutUrl("/api/logout")
+                .deleteCookies("JSESSIONID") // remove logout config if L2 cache is implemented
             .and()
                 .authorizeRequests()
                     .antMatchers("/", "/login").permitAll()

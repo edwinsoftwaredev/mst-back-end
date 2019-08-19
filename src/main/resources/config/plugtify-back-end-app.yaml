@@ -15,7 +15,7 @@ spec:
         app: plugtify-back-end
     spec:
       containers:
-        - image: gcr.io/plugtify/plugtify-back-end:v11
+        - image: gcr.io/plugtify/plugtify-back-end:v12
           name: plugtify-back-end
           env:
             - name: PLUGTIFY_DB_HOST
@@ -27,6 +27,16 @@ spec:
                 secretKeyRef:
                   name: mysql
                   key: password
+            - name: SPOTIFY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: spotify-secrets
+                  key: client-id
+            - name: SPOTIFY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: spotify-secrets
+                  key: client-secret
           ports:
             - containerPort: 9090
               name: plugtify-be

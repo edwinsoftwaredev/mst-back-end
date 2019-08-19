@@ -20,6 +20,10 @@ public class ApplicationProperties {
      */
     private final Spotify spotify = new Spotify();
 
+    public Spotify getSpotify() {
+        return spotify;
+    }
+
     /**
      * ObjectMapper Bean configuration requiered by Zalando Problem.
      * Zalando Problem is a small library to let customize APIs errors.

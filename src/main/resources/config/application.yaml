@@ -19,5 +19,6 @@ spring:
 
 # specific application properties
 application:
-  spotify-client-id: ${SPOTIFY_CLIENT_ID}
-  spotify-client-secret: ${SPOTIFY_CLIENT_SECRET}
+  spotify:
+    client-id: ${SPOTIFY_CLIENT_ID}
+    client-secret: ${SPOTIFY_CLIENT_SECRET}

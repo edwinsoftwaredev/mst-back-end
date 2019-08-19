@@ -8,10 +8,17 @@ import org.springframework.context.annotation.Configuration;
 import org.zalando.problem.ProblemModule;
 import org.zalando.problem.violations.ConstraintViolationProblemModule;
 
+// https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
+
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 public class ApplicationProperties {
+
+    /**
+     * variable for the applicacion properties file
+     */
+    private final Spotify spotify = new Spotify();
 
     /**
      * ObjectMapper Bean configuration requiered by Zalando Problem.
@@ -24,6 +31,28 @@ public class ApplicationProperties {
                 new ProblemModule(),
                 new ConstraintViolationProblemModule()
         );
+    }
+
+    public static class Spotify {
+
+        private String clientId;
+        private String clientSecret;
+
+        public String getClientId() {
+            return clientId;
+        }
+
+        public void setClientId(String clientId) {
+            this.clientId = clientId;
+        }
+
+        public String getClientSecret() {
+            return clientSecret;
+        }
+
+        public void setClientSecret(String clientSecret) {
+            this.clientSecret = clientSecret;
+        }
     }
 
 }

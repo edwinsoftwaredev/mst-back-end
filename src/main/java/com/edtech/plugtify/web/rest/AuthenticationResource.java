@@ -1,6 +1,8 @@
 package com.edtech.plugtify.web.rest;
 
 import com.edtech.plugtify.config.ApplicationProperties;
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
+import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +38,7 @@ public class AuthenticationResource {
     @GetMapping("/client-id")
     public ResponseEntity<String> getSpotifyClientId() {
 
-        final String clientIdJSON = "{'clientId':'" + this.applicationProperties.getSpotify().getClientId() + "'}";
+        final String clientIdJSON = "{"+ "\""+"clientId"+"\"" +":"+ "\""+ this.applicationProperties.getSpotify().getClientId() + "\"" + "}";
 
         return new ResponseEntity<String>(clientIdJSON, HttpStatus.OK);
     }

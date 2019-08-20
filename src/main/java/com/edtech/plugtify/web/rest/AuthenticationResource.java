@@ -36,7 +36,7 @@ public class AuthenticationResource {
     @GetMapping("/client-id")
     public ResponseEntity<String> getSpotifyClientId() {
 
-        final String clientIdJSON = "{clientId:'" + this.applicationProperties.getSpotify().getClientId() + "'}";
+        final String clientIdJSON = "{'clientId':'" + this.applicationProperties.getSpotify().getClientId() + "'}";
 
         return new ResponseEntity<String>(clientIdJSON, HttpStatus.OK);
     }

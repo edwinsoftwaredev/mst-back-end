@@ -1,14 +1,15 @@
 package com.edtech.plugtify.web.rest;
 
 import com.edtech.plugtify.config.ApplicationProperties;
+import com.edtech.plugtify.domain.User;
+import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
 import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.security.Principal;
 
 @RestController
@@ -41,5 +42,15 @@ public class AuthenticationResource {
         final String clientIdJSON = "{"+ "\""+"clientId"+"\"" +":"+ "\""+ this.applicationProperties.getSpotify().getClientId() + "\"" + "}";
 
         return new ResponseEntity<String>(clientIdJSON, HttpStatus.OK);
+    }
+
+    /**
+     * Method to get the spotify tokens
+     * @param authorizationCodeDTO authorization code to get the tokens
+     * @return Spotify user
+     */
+    @PostMapping("/authorization-code")
+    public User processAuthorization(@Valid @RequestBody AuthorizationCodeDTO authorizationCodeDTO) {
+        
     }
 }

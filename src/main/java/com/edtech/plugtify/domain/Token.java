@@ -15,11 +15,11 @@ public class Token implements Serializable {
 
     @Column(name = "access_token")
     @JsonIgnore
-    private String accessToken;
+    private String access_token;
 
     @Column(name = "token_type")
     @JsonIgnore
-    private String tokenType;
+    private String token_type;
 
     @Column(name = "scope")
     @JsonIgnore
@@ -27,11 +27,11 @@ public class Token implements Serializable {
 
     @Column(name = "expires_in")
     @JsonIgnore
-    private Integer expiresIn;
+    private Integer expires_in;
 
     @Column(name = "refresh_token")
     @JsonIgnore
-    private String refreshToken;
+    private String refresh_token;
 
     // commented, as it is a unidirectional relationship
     /* @OneToOne(mappedBy = "token") // mappedBy signal hibernate that the User entity has the foreign key
@@ -53,20 +53,20 @@ public class Token implements Serializable {
         this.id = id;
     }
 
-    public String getAccessToken() {
-        return accessToken;
+    public String getAccess_token() {
+        return access_token;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setAccess_token(String access_token) {
+        this.access_token = access_token;
     }
 
-    public String getTokenType() {
-        return tokenType;
+    public String getToken_type() {
+        return token_type;
     }
 
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
+    public void setToken_type(String token_type) {
+        this.token_type = token_type;
     }
 
     public String getScope() {
@@ -77,20 +77,20 @@ public class Token implements Serializable {
         this.scope = scope;
     }
 
-    public Integer getExpiresIn() {
-        return expiresIn;
+    public Integer getExpires_in() {
+        return expires_in;
     }
 
-    public void setExpiresIn(Integer expiresIn) {
-        this.expiresIn = expiresIn;
+    public void setExpires_in(Integer expires_in) {
+        this.expires_in = expires_in;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public String getRefresh_token() {
+        return refresh_token;
     }
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setRefresh_token(String refresh_token) {
+        this.refresh_token = refresh_token;
     }
 
     @Override

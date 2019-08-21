@@ -50,12 +50,12 @@ public class AuthenticationResource {
     }
 
     /**
-     * Method to get the spotify tokens
+     * Method to get the spotify tokens and process the auth code
      * @param authorizationCodeDTO authorization code to get the tokens
      * @return Spotify user
      */
     @PostMapping("/authorization-code")
     public User processAuthorization(@Valid @RequestBody AuthorizationCodeDTO authorizationCodeDTO) {
-        return this.spotifyService.processAuthorizationCode(authorizationCodeDTO.getCode());
+        return this.spotifyService.processAuthorizationCode(authorizationCodeDTO);
     }
 }

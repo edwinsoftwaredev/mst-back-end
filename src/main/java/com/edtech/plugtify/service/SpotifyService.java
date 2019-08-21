@@ -47,10 +47,12 @@ public class SpotifyService {
         TokenDTO tokenDTO =
             this.restTemplate.postForObject(this.SPOTIFY_TOKEN_END_POINT, authorizationCodeDTOHttpEntity, TokenDTO.class);
 
-        if (!this.userService.getCurrentUser().isPresent()) {
+        if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
         }
 
         User actualUser = this.userService.getCurrentUser().get();
+
+
     }
 }

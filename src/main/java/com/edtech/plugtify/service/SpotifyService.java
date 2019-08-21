@@ -10,6 +10,7 @@ import com.edtech.plugtify.service.dto.TokenDTO;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class SpotifyService {
         String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncode.getBytes());
 
         HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         httpHeaders.add("Authorization", value);
 
         HttpEntity<AuthorizationCodeDTO> authorizationCodeDTOHttpEntity =

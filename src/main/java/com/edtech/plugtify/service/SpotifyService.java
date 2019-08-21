@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
+
 @Service
 @Transactional
 public class SpotifyService {
@@ -24,7 +26,10 @@ public class SpotifyService {
 
     public User processAuthorizationCode(AuthorizationCodeDTO authorizationCode) {
 
-        String value = ""
+        String stringToBeEncode =
+                applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
+
+        String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncode.getBytes());
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", value);

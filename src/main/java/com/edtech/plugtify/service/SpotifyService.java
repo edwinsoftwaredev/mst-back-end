@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -95,7 +96,8 @@ public class SpotifyService {
 
     private List<HttpMessageConverter<?>> getMessageConverters() {
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
-        converters.add(new FormHttpMessageConverter());
+        converters.add(new FormHttpMessageConverter()); // Message converter for application/x-www-urlencoded -> Request
+        converters.add(new MappingJackson2HttpMessageConverter()); // Message converter for application/JSON -> Response
 
         return converters;
     }

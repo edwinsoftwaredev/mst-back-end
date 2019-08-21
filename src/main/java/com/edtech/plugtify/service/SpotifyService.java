@@ -3,6 +3,8 @@ package com.edtech.plugtify.service;
 import com.edtech.plugtify.config.ApplicationProperties;
 import com.edtech.plugtify.domain.User;
 import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
+import com.edtech.plugtify.service.dto.TokenDTO;
+import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,14 @@ public class SpotifyService {
 
     private RestTemplate restTemplate = new RestTemplate();
     private ApplicationProperties applicationProperties;
+    private UserService userService;
 
-    public SpotifyService(ApplicationProperties applicationProperties) {
+    public SpotifyService(
+        ApplicationProperties applicationProperties,
+        UserService userService
+    ) {
         this.applicationProperties = applicationProperties;
+        this.userService = userService;
     }
 
     public User processAuthorizationCode(AuthorizationCodeDTO authorizationCode) {
@@ -37,7 +44,13 @@ public class SpotifyService {
         HttpEntity<AuthorizationCodeDTO> authorizationCodeDTOHttpEntity =
             new HttpEntity<>(authorizationCode, httpHeaders);
 
-        this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, authorizationCodeDTOHttpEntity, );
-    }
+        TokenDTO tokenDTO =
+            this.restTemplate.postForObject(this.SPOTIFY_TOKEN_END_POINT, authorizationCodeDTOHttpEntity, TokenDTO.class);
 
+        if (!this.userService.getCurrentUser().isPresent()) {
+            throw new UserNotFoundException();
+        }
+
+        User actualUser = this.userService.getCurrentUser().get();
+    }
 }

@@ -90,6 +90,9 @@ public class SpotifyService {
         // set new token to user
         actualUser.setToken(newTokenResponse.getBody());
 
+        // set true for user has token
+        actualUser.setHasToken(true);
+
         // update current user with its tokens
         this.userRepository.save(actualUser);
     }

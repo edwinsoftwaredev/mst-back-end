@@ -2,9 +2,9 @@ package com.edtech.plugtify.web.rest;
 
 import com.edtech.plugtify.config.ApplicationProperties;
 import com.edtech.plugtify.domain.User;
+import com.edtech.plugtify.service.SpotifyService;
+import com.edtech.plugtify.service.UserService;
 import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
-import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +17,14 @@ import java.security.Principal;
 public class AuthenticationResource {
 
     private ApplicationProperties applicationProperties;
+    private SpotifyService spotifyService;
 
-    public AuthenticationResource(ApplicationProperties applicationProperties) {
+    public AuthenticationResource(
+        ApplicationProperties applicationProperties,
+        SpotifyService spotifyService
+    ) {
         this.applicationProperties = applicationProperties;
+        this.spotifyService = spotifyService;
     }
 
     /**
@@ -51,6 +56,6 @@ public class AuthenticationResource {
      */
     @PostMapping("/authorization-code")
     public User processAuthorization(@Valid @RequestBody AuthorizationCodeDTO authorizationCodeDTO) {
-        
+        return this.spotifyService.processAuthorizationCode(authorizationCodeDTO.getCode());
     }
 }

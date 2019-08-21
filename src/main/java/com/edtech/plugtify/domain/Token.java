@@ -33,7 +33,8 @@ public class Token implements Serializable {
     @JsonIgnore
     private String refreshToken;
 
-    @OneToOne(mappedBy = "token")
+    // commented, as it is a unidirectional relationship
+    /* @OneToOne(mappedBy = "token") // mappedBy signal hibernate that the User entity has the foreign key
     private User user;
 
     public User getUser() {
@@ -42,7 +43,7 @@ public class Token implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
-    }
+    }*/
 
     public Long getId() {
         return id;

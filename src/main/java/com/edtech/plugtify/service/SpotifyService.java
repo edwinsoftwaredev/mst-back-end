@@ -12,11 +12,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 @Transactional
@@ -50,14 +56,22 @@ public class SpotifyService {
         String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncode.getBytes());
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED); // spotify require this type of encoder
         httpHeaders.add("Authorization", value);
 
-        HttpEntity<AuthorizationCodeDTO> authorizationCodeDTOHttpEntity =
-            new HttpEntity<>(authorizationCode, httpHeaders);
+        MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+
+        parameterMap.add("grant_type", authorizationCode.getGrant_type());
+        parameterMap.add("code", authorizationCode.getCode());
+        parameterMap.add("redirect_uri", authorizationCode.getRedirect_uri());
+
+        HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
+            new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+
+        this.restTemplate.setMessageConverters(this.getMessageConverters());
 
         ResponseEntity<Token> newTokenResponse =
-            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, authorizationCodeDTOHttpEntity, Token.class);
+            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, Token.class);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
@@ -77,5 +91,12 @@ public class SpotifyService {
 
         // update current user with its tokens
         this.userRepository.save(actualUser);
+    }
+
+    private List<HttpMessageConverter<?>> getMessageConverters() {
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.add(new FormHttpMessageConverter());
+
+        return converters;
     }
 }

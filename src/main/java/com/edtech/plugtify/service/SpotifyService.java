@@ -122,6 +122,17 @@ public class SpotifyService {
         }
     }
 
+    // method to refresh access token
+    public void refreshAccessToken() {
+        if(this.userService.getCurrentUser().isEmpty()) {
+            throw new UserNotFoundException();
+        }
+
+        User currentUser = this.userService.getCurrentUser().get();
+        
+
+    }
+
     private List<HttpMessageConverter<?>> getMessageConverters() {
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         converters.add(new FormHttpMessageConverter()); // Message converter for application/x-www-urlencoded -> Request

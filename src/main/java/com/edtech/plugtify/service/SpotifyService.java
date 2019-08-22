@@ -21,6 +21,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -105,6 +107,7 @@ public class SpotifyService {
             newToken.setRefresh_token(tokenDTORes.getRefresh_token());
             newToken.setScope(tokenDTORes.getScope());
             newToken.setToken_type(tokenDTORes.getToken_type());
+            newToken.setLastUpdateTime(Timestamp.from(Instant.now()));
 
             actualUser.setToken(newToken);
 

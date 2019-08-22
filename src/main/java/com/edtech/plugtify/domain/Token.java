@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 @Entity
 @Table(name = "tbl_token")
@@ -32,6 +34,10 @@ public class Token implements Serializable {
     @Column(name = "refresh_token")
     @JsonIgnore
     private String refresh_token;
+
+    @Column(name = "last_update_time")
+    @JsonIgnore
+    private Timestamp lastUpdateTime = Timestamp.from(Instant.now());
 
     // commented, as it is a unidirectional relationship
     /* @OneToOne(mappedBy = "token") // mappedBy signal hibernate that the User entity has the foreign key
@@ -91,6 +97,14 @@ public class Token implements Serializable {
 
     public void setRefresh_token(String refresh_token) {
         this.refresh_token = refresh_token;
+    }
+
+    public Timestamp getLastUpdateTime() {
+        return lastUpdateTime;
+    }
+
+    public void setLastUpdateTime(Timestamp lastUpdateTime) {
+        this.lastUpdateTime = lastUpdateTime;
     }
 
     @Override

@@ -29,3 +29,5 @@ add constraint fk_token foreign key(token_id) references tbl_token(id);
 alter table tbl_user
 add column has_token boolean;
 
+alter table tbl_token
+add column last_update_time timestamp not null;

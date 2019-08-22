@@ -55,7 +55,6 @@ public class User extends AbstractAuditingEntity implements Serializable {
         return token;
     }
 
-
     public void setToken(Token token) {
         this.token = token;
     }

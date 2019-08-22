@@ -96,7 +96,7 @@ public class SpotifyService {
         // actualUser.setHasToken(true);
 
         System.out.println("-----TEST-----");
-        System.out.println("body: " + newTokenResponse.getBody().toString());
+        System.out.println("body: " + newTokenResponse.getBody().getRefresh_token());
         System.out.println("status: " + newTokenResponse.getStatusCodeValue());
 
         // update current user with its tokens

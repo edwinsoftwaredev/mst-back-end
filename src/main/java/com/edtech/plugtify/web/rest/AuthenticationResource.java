@@ -34,6 +34,9 @@ public class AuthenticationResource {
      */
     @GetMapping("/user")
     public ResponseEntity<Principal> getAuthenticatedUsed(Principal principal) {
+        // for test purpose we call
+        this.spotifyService.refreshAccessToken();
+
         return ResponseEntity.ok().body(principal);
     }
 

@@ -138,6 +138,11 @@ public class SpotifyService {
 
         User currentUser = this.userService.getCurrentUser().get();
 
+        // check if user has token
+        if(currentUser.getToken() == null) {
+            return;
+        }
+
         Token userToken = currentUser.getToken();
 
         Timestamp validTime = Timestamp
@@ -179,7 +184,7 @@ public class SpotifyService {
                 this.tokenRepository.save(userToken);
 
             } else {
-                throw new InternalServerErrorException("refresh token body is empty");
+                throw new InternalServerErrorException("response body is empty");
             }
 
         }

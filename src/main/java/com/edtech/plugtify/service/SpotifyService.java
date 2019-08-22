@@ -62,9 +62,6 @@ public class SpotifyService {
 
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
 
-        System.out.println("code: " + authorizationCode.getCode());
-        System.out.println("redirect_uri" + authorizationCode.getRedirect_uri());
-
         parameterMap.add("grant_type", authorizationCode.getGrant_type());
         parameterMap.add("code", authorizationCode.getCode());
         parameterMap.add("redirect_uri", authorizationCode.getRedirect_uri());
@@ -99,7 +96,7 @@ public class SpotifyService {
         actualUser.setHasToken(true);
 
         System.out.println("-----TEST-----");
-        System.out.println("refresh token: " + newTokenResponse.getBody().getRefresh_token());
+        System.out.println("refresh token: " + newTokenResponse.getBody().toString());
         System.out.println("status: " + newTokenResponse.getStatusCodeValue());
 
         // update current user with its tokens

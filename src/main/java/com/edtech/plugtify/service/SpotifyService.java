@@ -129,7 +129,21 @@ public class SpotifyService {
         }
 
         User currentUser = this.userService.getCurrentUser().get();
-        
+
+        Token userToken = currentUser.getToken();
+
+        Timestamp validTime = Timestamp
+            .from(userToken
+                .getLastUpdateTime()
+                .toInstant()
+                .plusSeconds(userToken.getExpires_in()));
+
+        // check if validtime is > than the current time
+        if(validTime.after(Timestamp.from(Instant.now()))) {
+            // refresh access token
+
+
+        }
 
     }
 

@@ -187,17 +187,38 @@ public class SpotifyService {
      */
     public SpotifyUserDTO getCurrentUser() {
         Token userToken = this.getCurrentUserToken();
+        HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
 
     }
 
     /**
-     * Get HttpHeaders for general purpose, like get current profile or other requests
+     * Check if token is valid; if not try refresh token
      * @param userToken
+     */
+    private void checkTokenValidity(Token userToken) {
+        Timestamp checkTime =
+                Timestamp.from(userToken.getLastUpdateTime().toInstant().plusSeconds(userToken.getExpires_in()));
+
+        if(checkTime.before(Timestamp.from(Instant.now()))) {
+            // refresh token
+            HttpHeaders httpHeaders = this.getHttpHeadersAuth();
+        }
+    }
+
+    /**
+     * Get HttpHeaders for general purpose, like get current profile or other requests
+     * @param userToken userToken tokens details entity
      * @return HttpHeaders
      */
     private HttpHeaders getHttpHeaders(Token userToken) {
+        String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        httpHeaders.add("Authorization", value);
+
+        return httpHeaders;
     }
 
     /**
@@ -219,6 +240,10 @@ public class SpotifyService {
         return currentUser.get().getToken();
     }
 
+    /**
+     * Get HttpHeaders for Authorization flow and refresh tokens
+     * @return
+     */
     public HttpHeaders getHttpHeadersAuth() {
         String stringToBeEncoded =
                 applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();

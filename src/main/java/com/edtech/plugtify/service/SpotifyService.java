@@ -152,7 +152,7 @@ public class SpotifyService {
                 .plusSeconds(userToken.getExpires_in()));
 
         // check if validtime is > than the current time
-        if(validTime.after(Timestamp.from(Instant.now()))) {
+        if(validTime.before(Timestamp.from(Instant.now()))) {
             // refresh access token
 
             HttpHeaders httpHeaders = this.getHttpHeaders();

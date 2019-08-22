@@ -37,7 +37,7 @@ public class Token implements Serializable {
 
     @Column(name = "last_update_time")
     @JsonIgnore
-    private Timestamp lastUpdateTime = Timestamp.from(Instant.now());
+    private Timestamp lastUpdateTime;
 
     // commented, as it is a unidirectional relationship
     /* @OneToOne(mappedBy = "token") // mappedBy signal hibernate that the User entity has the foreign key

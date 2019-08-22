@@ -38,7 +38,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // changed to LAZY. in case of this property is need call the get method: getToken()
     @JoinColumn(name = "token_id", referencedColumnName = "id")
     @JsonIgnore
     private Token token;

@@ -71,36 +71,36 @@ public class SpotifyService {
 
         this.restTemplate.setMessageConverters(this.getMessageConverters());
 
-        ResponseEntity<Token> newTokenResponse =
-            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, Token.class);
+        ResponseEntity<TokenDTO> newTokenResponse =
+            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
         }
 
         // get current user
-        User actualUser = this.userService.getCurrentUser().get();
+        // User actualUser = this.userService.getCurrentUser().get();
 
         // check if user have a token
-        if(actualUser.getHasToken()) {
+        /*if(actualUser.getHasToken()) {
             // user have token; delete token
             actualUser.setToken(null);
             actualUser.setHasToken(false);
             this.userRepository.save(actualUser); // because the class is @Transactional we can do this
-        }
+        }*/
 
         // set new token to user
-        actualUser.setToken(newTokenResponse.getBody());
+        // actualUser.setToken(newTokenResponse.getBody());
 
         // set true for user has token
-        actualUser.setHasToken(true);
+        // actualUser.setHasToken(true);
 
         System.out.println("-----TEST-----");
-        System.out.println("refresh token: " + newTokenResponse.getBody().toString());
+        System.out.println("body: " + newTokenResponse.getBody().toString());
         System.out.println("status: " + newTokenResponse.getStatusCodeValue());
 
         // update current user with its tokens
-        this.userRepository.save(actualUser);
+        // this.userRepository.save(actualUser);
     }
 
     private List<HttpMessageConverter<?>> getMessageConverters() {

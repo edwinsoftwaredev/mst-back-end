@@ -5,8 +5,6 @@ public class TokenDTO {
 
     public TokenDTO() { }
 
-    private Long id;
-
     @NotBlank
     private String access_token;
 

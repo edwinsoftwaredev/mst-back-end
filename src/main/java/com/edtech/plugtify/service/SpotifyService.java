@@ -49,7 +49,7 @@ public class SpotifyService {
         this.tokenRepository = tokenRepository;
     }
 
-    public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) {
+    public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) throws Exception {
 
         String stringToBeEncode =
                 applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
@@ -67,40 +67,56 @@ public class SpotifyService {
         parameterMap.add("redirect_uri", authorizationCode.getRedirect_uri());
 
         HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
-            new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
         this.restTemplate.setMessageConverters(this.getMessageConverters());
 
         ResponseEntity<TokenDTO> newTokenResponse =
-            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
+                this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
         }
 
         // get current user
-        // User actualUser = this.userService.getCurrentUser().get();
+        User actualUser = this.userService.getCurrentUser().get();
 
         // check if user have a token
-        /*if(actualUser.getHasToken()) {
+        if (actualUser.getHasToken()) {
             // user have token; delete token
             actualUser.setToken(null);
             actualUser.setHasToken(false);
             this.userRepository.save(actualUser); // because the class is @Transactional we can do this
-        }*/
+        }
 
-        // set new token to user
-        // actualUser.setToken(newTokenResponse.getBody());
+        if(!newTokenResponse.hasBody()) {
+            throw new Exception("newTokenResponse doesnt have body");
+        }
 
-        // set true for user has token
-        // actualUser.setHasToken(true);
+        try {
 
-        System.out.println("-----TEST-----");
-        System.out.println("body: " + newTokenResponse.getBody().getRefresh_token());
-        System.out.println("status: " + newTokenResponse.getStatusCodeValue());
+            // the response body
+            TokenDTO tokenDTORes = newTokenResponse.getBody();
 
-        // update current user with its tokens
-        // this.userRepository.save(actualUser);
+            // set new token to user
+            Token newToken = new Token();
+            newToken.setAccess_token(tokenDTORes.getAccess_token());
+            newToken.setExpires_in(tokenDTORes.getExpires_in());
+            newToken.setRefresh_token(tokenDTORes.getRefresh_token());
+            newToken.setScope(tokenDTORes.getScope());
+            newToken.setToken_type(tokenDTORes.getToken_type());
+
+            actualUser.setToken(newToken);
+
+            // set true for user has token
+            actualUser.setHasToken(true);
+
+            // update current user with its tokens
+            this.userRepository.save(actualUser);
+
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
     }
 
     private List<HttpMessageConverter<?>> getMessageConverters() {

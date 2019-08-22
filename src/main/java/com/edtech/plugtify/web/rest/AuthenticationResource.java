@@ -55,7 +55,7 @@ public class AuthenticationResource {
      * @return Spotify user
      */
     @PostMapping("/authorization-code")
-    public ResponseEntity<Void> processAuthorization(@Valid @RequestBody AuthorizationCodeDTO authorizationCodeDTO) {
+    public ResponseEntity<Void> processAuthorization(@Valid @RequestBody AuthorizationCodeDTO authorizationCodeDTO) throws Exception {
         this.spotifyService.processAuthorizationCode(authorizationCodeDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }

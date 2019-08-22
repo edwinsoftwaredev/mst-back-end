@@ -51,16 +51,22 @@ public class SpotifyService {
         this.tokenRepository = tokenRepository;
     }
 
-    public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) throws Exception {
-
-        String stringToBeEncode =
+    public HttpHeaders getHttpHeaders() {
+        String stringToBeEncoded =
                 applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
 
-        String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncode.getBytes());
+        String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncoded.getBytes());
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED); // spotify require this type of encoder
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         httpHeaders.add("Authorization", value);
+
+        return httpHeaders;
+    }
+
+    public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) throws Exception {
+
+        HttpHeaders httpHeaders = this.getHttpHeaders();
 
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
 
@@ -142,7 +148,16 @@ public class SpotifyService {
         if(validTime.after(Timestamp.from(Instant.now()))) {
             // refresh access token
 
+            HttpHeaders httpHeaders = this.getHttpHeaders();
 
+            MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+            parameterMap.add("grant_type", "refresh_token");
+            parameterMap.add("refresh_token", userToken.getRefresh_token());
+
+            HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
+                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+
+            
         }
 
     }

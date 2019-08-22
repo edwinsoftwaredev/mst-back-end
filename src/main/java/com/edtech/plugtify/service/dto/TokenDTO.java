@@ -17,7 +17,6 @@ public class TokenDTO {
     @NotBlank
     private Integer expires_in;
 
-    @NotBlank
     private String refresh_token;
 
     public String getAccess_token() {

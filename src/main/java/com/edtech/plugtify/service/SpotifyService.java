@@ -6,6 +6,7 @@ import com.edtech.plugtify.domain.User;
 import com.edtech.plugtify.repository.TokenRepository;
 import com.edtech.plugtify.repository.UserRepository;
 import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
+import com.edtech.plugtify.service.dto.SpotifyUserDTO;
 import com.edtech.plugtify.service.dto.TokenDTO;
 import com.edtech.plugtify.web.rest.errors.InternalServerErrorException;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
@@ -49,18 +50,6 @@ public class SpotifyService {
         this.tokenRepository = tokenRepository;
     }
 
-    public HttpHeaders getHttpHeaders() {
-        String stringToBeEncoded =
-                applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
-
-        String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncoded.getBytes());
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        httpHeaders.add("Authorization", value);
-
-        return httpHeaders;
-    }
 
     public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) throws Exception {
 
@@ -189,6 +178,23 @@ public class SpotifyService {
 
         }
 
+    }
+
+    public SpotifyUserDTO getCurrentUser() {
+        
+    }
+
+    public HttpHeaders getHttpHeaders() {
+        String stringToBeEncoded =
+                applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
+
+        String value = "Basic " + Base64.getEncoder().encodeToString(stringToBeEncoded.getBytes());
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        httpHeaders.add("Authorization", value);
+
+        return httpHeaders;
     }
 
     private List<HttpMessageConverter<?>> getMessageConverters() {

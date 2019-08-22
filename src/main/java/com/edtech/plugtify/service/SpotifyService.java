@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -53,7 +54,7 @@ public class SpotifyService {
 
     public void processAuthorizationCode(AuthorizationCodeDTO authorizationCode) throws Exception {
 
-        HttpHeaders httpHeaders = this.getHttpHeaders();
+        HttpHeaders httpHeaders = this.getHttpHeadersAuth();
 
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
 
@@ -144,7 +145,7 @@ public class SpotifyService {
         if(validTime.before(Timestamp.from(Instant.now()))) {
             // refresh access token
 
-            HttpHeaders httpHeaders = this.getHttpHeaders();
+            HttpHeaders httpHeaders = this.getHttpHeadersAuth();
 
             MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
             parameterMap.add("grant_type", "refresh_token");
@@ -180,11 +181,45 @@ public class SpotifyService {
 
     }
 
+    /**
+     * Get Spotify current profile
+     * @return SpotifyUserDTO
+     */
     public SpotifyUserDTO getCurrentUser() {
-        
+        Token userToken = this.getCurrentUserToken();
+
+
     }
 
-    public HttpHeaders getHttpHeaders() {
+    /**
+     * Get HttpHeaders for general purpose, like get current profile or other requests
+     * @param userToken
+     * @return HttpHeaders
+     */
+    private HttpHeaders getHttpHeaders(Token userToken) {
+
+    }
+
+    /**
+     * Method to get Current user Token Entity
+     * @return Token Entity
+     */
+    private Token getCurrentUserToken() {
+
+        Optional<User> currentUser = this.userService.getCurrentUser();
+
+        if(currentUser.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+
+        if(currentUser.get().getToken() == null) {
+            throw new InternalServerErrorException("User doesn't have Access Token!");
+        }
+
+        return currentUser.get().getToken();
+    }
+
+    public HttpHeaders getHttpHeadersAuth() {
         String stringToBeEncoded =
                 applicationProperties.getSpotify().getClientId() + ":" + applicationProperties.getSpotify().getClientSecret();
 

@@ -71,8 +71,8 @@ public class SpotifyService {
 
         this.restTemplate.setMessageConverters(this.getMessageConverters());
 
-        ResponseEntity<TokenDTO> newTokenResponse =
-            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
+        ResponseEntity<String> newTokenResponse =
+            this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, String.class);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();

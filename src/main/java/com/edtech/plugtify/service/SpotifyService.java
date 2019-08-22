@@ -7,6 +7,7 @@ import com.edtech.plugtify.repository.TokenRepository;
 import com.edtech.plugtify.repository.UserRepository;
 import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
 import com.edtech.plugtify.service.dto.TokenDTO;
+import com.edtech.plugtify.web.rest.errors.InternalServerErrorException;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,9 +32,6 @@ import java.util.List;
 @Transactional
 public class SpotifyService {
 
-    private final String SPOTIFY_TOKEN_END_POINT = "https://accounts.spotify.com/api/token";
-
-    private RestTemplate restTemplate = new RestTemplate();
     private ApplicationProperties applicationProperties;
     private UserService userService;
     private UserRepository userRepository;
@@ -77,10 +75,14 @@ public class SpotifyService {
         HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
                 new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
-        this.restTemplate.setMessageConverters(this.getMessageConverters());
+        RestTemplate restTemplate = new RestTemplate();
+
+        restTemplate.setMessageConverters(this.getMessageConverters());
+
+        String SPOTIFY_TOKEN_END_POINT = "https://accounts.spotify.com/api/token";
 
         ResponseEntity<TokenDTO> newTokenResponse =
-                this.restTemplate.postForEntity(this.SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
+                restTemplate.postForEntity(SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
@@ -157,7 +159,29 @@ public class SpotifyService {
             HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
                 new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
-            
+            RestTemplate restTemplate = new RestTemplate();
+
+            restTemplate.setMessageConverters(this.getMessageConverters());
+
+            String spotifyTokenRefresherEndpoint = "https://accounts.spotify.com/api/token";
+
+            ResponseEntity<TokenDTO> refreshedToken =
+                restTemplate.postForEntity(spotifyTokenRefresherEndpoint, parametersHttpEntity, TokenDTO.class);
+
+            if(refreshedToken.hasBody()) {
+
+                userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
+                userToken.setScope(refreshedToken.getBody().getScope());
+                userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
+                userToken.setToken_type(refreshedToken.getBody().getToken_type());
+                userToken.setLastUpdateTime(Timestamp.from(Instant.now()));
+
+                this.tokenRepository.save(userToken);
+
+            } else {
+                throw new InternalServerErrorException("refresh token body is empty");
+            }
+
         }
 
     }

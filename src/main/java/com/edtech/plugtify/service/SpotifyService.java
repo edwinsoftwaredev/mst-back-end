@@ -122,29 +122,21 @@ public class SpotifyService {
 
     // method to refresh access token
     public void refreshAccessToken() {
-        if(this.userService.getCurrentUser().isEmpty()) {
+        
+        Optional<User> currentUser = this.userService.getCurrentUser();
+
+        if(currentUser.isEmpty()) {
             throw new UserNotFoundException();
         }
 
-        User currentUser = this.userService.getCurrentUser().get();
-
         // check if user has token
-        if(currentUser.getToken() == null) {
+        if(currentUser.get().getToken() == null) {
             return;
         }
 
-        Token userToken = currentUser.getToken();
+        Token userToken = currentUser.get().getToken();
 
-        Timestamp validTime = Timestamp
-            .from(userToken
-                .getLastUpdateTime()
-                .toInstant()
-                .plusSeconds(userToken.getExpires_in()));
-
-        // check if validtime is > than the current time
-        if(validTime.before(Timestamp.from(Instant.now()))) {
-            // refresh access token
-
+        if(this.isTokenExpired(userToken)) {
             HttpHeaders httpHeaders = this.getHttpHeadersAuth();
 
             MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
@@ -152,7 +144,7 @@ public class SpotifyService {
             parameterMap.add("refresh_token", userToken.getRefresh_token());
 
             HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
-                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+                    new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
             RestTemplate restTemplate = new RestTemplate();
 
@@ -161,7 +153,7 @@ public class SpotifyService {
             String spotifyTokenRefresherEndpoint = "https://accounts.spotify.com/api/token";
 
             ResponseEntity<TokenDTO> refreshedToken =
-                restTemplate.postForEntity(spotifyTokenRefresherEndpoint, parametersHttpEntity, TokenDTO.class);
+                    restTemplate.postForEntity(spotifyTokenRefresherEndpoint, parametersHttpEntity, TokenDTO.class);
 
             if(refreshedToken.hasBody()) {
 
@@ -176,9 +168,7 @@ public class SpotifyService {
             } else {
                 throw new InternalServerErrorException("response body is empty");
             }
-
         }
-
     }
 
     /**
@@ -196,13 +186,15 @@ public class SpotifyService {
      * Check if token is valid; if not try refresh token
      * @param userToken
      */
-    private void checkTokenValidity(Token userToken) {
+    private boolean isTokenExpired(Token userToken) {
         Timestamp checkTime =
                 Timestamp.from(userToken.getLastUpdateTime().toInstant().plusSeconds(userToken.getExpires_in()));
 
         if(checkTime.before(Timestamp.from(Instant.now()))) {
             // refresh token
-            HttpHeaders httpHeaders = this.getHttpHeadersAuth();
+            return true;
+        } else {
+            return false;
         }
     }
 

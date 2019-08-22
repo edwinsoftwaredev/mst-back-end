@@ -20,11 +20,6 @@ public class TokenDTO {
     @NotBlank
     private String refresh_token;
 
-    @Override
-    public String toString() {
-        return "TokenDTO{}";
-    }
-
     public String getAccess_token() {
         return access_token;
     }

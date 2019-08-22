@@ -48,7 +48,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "User:{}";
+        return "User{}";
     }
 
     public Token getToken() {

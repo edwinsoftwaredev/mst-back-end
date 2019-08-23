@@ -10,10 +10,7 @@ import com.edtech.plugtify.service.dto.SpotifyUserDTO;
 import com.edtech.plugtify.service.dto.TokenDTO;
 import com.edtech.plugtify.web.rest.errors.InternalServerErrorException;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -130,9 +127,6 @@ public class SpotifyService {
 
         if(refreshedToken.hasBody()) {
 
-            System.out.println("PRINTED TOKEN");
-            System.out.println(refreshedToken.getBody().getAccess_token());
-
             userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
             userToken.setScope(refreshedToken.getBody().getScope());
             userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
@@ -174,7 +168,8 @@ public class SpotifyService {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
-        return restTemplate.getForEntity(urlEndPoint, object, httpEntity);
+        // the getForEntity dont let set httpEntity wich can have headers
+        return restTemplate.exchange(urlEndPoint, HttpMethod.GET, httpEntity, object);
     }
 
     /**
@@ -215,9 +210,6 @@ public class SpotifyService {
         }
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
-
-        System.out.println("PRINTED VALUE");
-        System.out.println(value);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

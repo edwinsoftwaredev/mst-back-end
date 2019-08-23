@@ -156,11 +156,6 @@ public class SpotifyService {
     public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
         Token userToken = this.getCurrentUserToken();
 
-        // validate if access token is valid
-        if(this.isTokenExpired(userToken)) {
-            this.refreshAccessToken(userToken);
-        }
-
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
         HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
@@ -220,6 +215,9 @@ public class SpotifyService {
         }
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
+
+        System.out.println("PRINTED VALUE");
+        System.out.println(value);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

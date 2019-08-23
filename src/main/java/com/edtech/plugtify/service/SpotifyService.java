@@ -154,7 +154,16 @@ public class SpotifyService {
 
         HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
 
-        return (ResponseEntity<SpotifyUserDTO>) this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity);
+        // TEST
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setMessageConverters(this.getMessageConverters());
+        return restTemplate
+                .exchange(SpotifyConstants.URL_CURRENT_USER,
+                        HttpMethod.GET,
+                        httpEntity,
+                        SpotifyUserDTO.class);
+
+        // return (ResponseEntity<SpotifyUserDTO>) this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity);
     }
 
     /**

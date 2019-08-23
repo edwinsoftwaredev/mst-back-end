@@ -115,48 +115,34 @@ public class SpotifyService {
     }
 
     // method to refresh access token if needed
-    public void refreshAccessToken() {
+    public Token refreshAccessToken(Token userToken) {
+        HttpHeaders httpHeaders = this.getHttpHeadersAuth();
 
-        Optional<User> currentUser = this.userService.getCurrentUser();
+        MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+        parameterMap.add("grant_type", "refresh_token");
+        parameterMap.add("refresh_token", userToken.getRefresh_token());
 
-        if(currentUser.isEmpty()) {
-            throw new UserNotFoundException();
+        HttpEntity<MultiValueMap<String, String>> httpEntity =
+                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+
+        ResponseEntity<TokenDTO> refreshedToken =
+                this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_REFRESH_TOKEN, httpEntity);
+
+        if(refreshedToken.hasBody()) {
+
+            userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
+            userToken.setScope(refreshedToken.getBody().getScope());
+            userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
+            userToken.setToken_type(refreshedToken.getBody().getToken_type());
+            userToken.setLastUpdateTime(Timestamp.from(Instant.now()));
+
+            this.tokenRepository.save(userToken);
+
+        } else {
+            throw new InternalServerErrorException("response body is empty");
         }
 
-        // check if user has token
-        if(currentUser.get().getToken() == null) {
-            return;
-        }
-
-        Token userToken = currentUser.get().getToken();
-
-        if(this.isTokenExpired(userToken)) {
-            HttpHeaders httpHeaders = this.getHttpHeadersAuth();
-
-            MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
-            parameterMap.add("grant_type", "refresh_token");
-            parameterMap.add("refresh_token", userToken.getRefresh_token());
-
-            HttpEntity<MultiValueMap<String, String>> httpEntity =
-                    new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
-
-            ResponseEntity<TokenDTO> refreshedToken =
-                    this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_REFRESH_TOKEN, httpEntity);
-
-            if(refreshedToken.hasBody()) {
-
-                userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
-                userToken.setScope(refreshedToken.getBody().getScope());
-                userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
-                userToken.setToken_type(refreshedToken.getBody().getToken_type());
-                userToken.setLastUpdateTime(Timestamp.from(Instant.now()));
-
-                this.tokenRepository.save(userToken);
-
-            } else {
-                throw new InternalServerErrorException("response body is empty");
-            }
-        }
+        return userToken;
     }
 
     /**
@@ -166,6 +152,12 @@ public class SpotifyService {
     @SuppressWarnings("unchecked")
     public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
         Token userToken = this.getCurrentUserToken();
+
+        // validate if access token is valid
+        if(this.isTokenExpired(userToken)) {
+            this.refreshAccessToken(userToken);
+        }
+
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
         HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
@@ -220,7 +212,9 @@ public class SpotifyService {
      */
     private HttpHeaders getHttpHeaders(Token userToken) {
 
-        this.refreshAccessToken(); // if needed this will refresh the access token
+        if(this.isTokenExpired(userToken)) {
+            this.refreshAccessToken(userToken); // if needed this will refresh the access token
+        }
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 

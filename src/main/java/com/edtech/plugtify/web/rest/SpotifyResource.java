@@ -21,6 +21,11 @@ public class SpotifyResource {
     @GetMapping("/current-user")
     public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
 
-        return this.spotifyService.getCurrentUser();
+        ResponseEntity<SpotifyUserDTO> spotifyUser = this.spotifyService.getCurrentUser();
+
+        System.out.println("Status: " + spotifyUser.getStatusCode().toString());
+        System.out.println("UserName: " + spotifyUser.getBody().getDisplay_name());
+
+        return spotifyUser;
     }
 }

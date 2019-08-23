@@ -155,6 +155,7 @@ public class SpotifyService {
 
         // validate if access token is valid
         if(this.isTokenExpired(userToken)) {
+            System.out.println("Token is invalid!!!!");
             this.refreshAccessToken(userToken);
         }
 

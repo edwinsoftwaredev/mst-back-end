@@ -154,16 +154,18 @@ public class SpotifyService {
 
         HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
 
-        // TEST
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setMessageConverters(this.getMessageConverters());
-        return restTemplate
-                .exchange(SpotifyConstants.URL_CURRENT_USER,
-                        HttpMethod.GET,
-                        httpEntity,
-                        SpotifyUserDTO.class);
+        return (ResponseEntity<SpotifyUserDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity));
+    }
 
-        // return (ResponseEntity<SpotifyUserDTO>) this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity);
+    /**
+     * Method to create a Client(Front-End) ResponseEntity base on the SpotifyReponseEntity
+     * this is because if we return the ResponseEntity from Spotify our Nginx server will reject the response!!
+     * @param responseEntity
+     * @return the new ResponseEntity for the Front-End
+     */
+    @SuppressWarnings("unchecked")
+    private ResponseEntity<?> getClientResponseEntity(ResponseEntity<?> responseEntity) {
+        return new ResponseEntity<>(responseEntity.getBody(), HttpStatus.OK);
     }
 
     /**
@@ -178,6 +180,7 @@ public class SpotifyService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
         // the getForEntity dont let set httpEntity wich can have headers
+        // this is why we use restTemplate.exchange
         return restTemplate.exchange(urlEndPoint, HttpMethod.GET, httpEntity, object);
     }
 

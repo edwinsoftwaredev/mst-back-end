@@ -130,6 +130,9 @@ public class SpotifyService {
 
         if(refreshedToken.hasBody()) {
 
+            System.out.println("PRINTED TOKEN");
+            System.out.println(refreshedToken.getBody().getAccess_token());
+
             userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
             userToken.setScope(refreshedToken.getBody().getScope());
             userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
@@ -155,7 +158,6 @@ public class SpotifyService {
 
         // validate if access token is valid
         if(this.isTokenExpired(userToken)) {
-            System.out.println("Token is invalid!!!!");
             this.refreshAccessToken(userToken);
         }
 

@@ -20,6 +20,6 @@ public class SpotifyResource {
 
     @GetMapping("/current-user")
     public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
-        return new ResponseEntity<>(this.spotifyService.getCurrentUser(), HttpStatus.OK);
+        return this.spotifyService.getCurrentUser();
     }
 }

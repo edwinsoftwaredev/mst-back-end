@@ -62,17 +62,11 @@ public class SpotifyService {
         parameterMap.add("code", authorizationCode.getCode());
         parameterMap.add("redirect_uri", authorizationCode.getRedirect_uri());
 
-        HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
+        HttpEntity<MultiValueMap<String, String>> httpEntity =
                 new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
-        RestTemplate restTemplate = new RestTemplate();
-
-        restTemplate.setMessageConverters(this.getMessageConverters());
-
-        String SPOTIFY_TOKEN_END_POINT = "https://accounts.spotify.com/api/token";
-
         ResponseEntity<TokenDTO> newTokenResponse =
-                restTemplate.postForEntity(SPOTIFY_TOKEN_END_POINT, parametersHttpEntity, TokenDTO.class);
+                this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_EXCHANGE_TOKEN, httpEntity);
 
         if (this.userService.getCurrentUser().isEmpty()) {
             throw new UserNotFoundException();
@@ -120,9 +114,9 @@ public class SpotifyService {
         }
     }
 
-    // method to refresh access token
+    // method to refresh access token if needed
     public void refreshAccessToken() {
-        
+
         Optional<User> currentUser = this.userService.getCurrentUser();
 
         if(currentUser.isEmpty()) {
@@ -143,17 +137,11 @@ public class SpotifyService {
             parameterMap.add("grant_type", "refresh_token");
             parameterMap.add("refresh_token", userToken.getRefresh_token());
 
-            HttpEntity<MultiValueMap<String, String>> parametersHttpEntity =
+            HttpEntity<MultiValueMap<String, String>> httpEntity =
                     new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
 
-            RestTemplate restTemplate = new RestTemplate();
-
-            restTemplate.setMessageConverters(this.getMessageConverters());
-
-            String spotifyTokenRefresherEndpoint = "https://accounts.spotify.com/api/token";
-
             ResponseEntity<TokenDTO> refreshedToken =
-                    restTemplate.postForEntity(spotifyTokenRefresherEndpoint, parametersHttpEntity, TokenDTO.class);
+                    this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_REFRESH_TOKEN, httpEntity);
 
             if(refreshedToken.hasBody()) {
 
@@ -175,27 +163,54 @@ public class SpotifyService {
      * Get Spotify current profile
      * @return SpotifyUserDTO
      */
-    public SpotifyUserDTO getCurrentUser() {
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
         Token userToken = this.getCurrentUserToken();
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
+        HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
+
+        return (ResponseEntity<SpotifyUserDTO>) this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity);
+    }
+
+    /**
+     * Method to manage all get requests
+     * @param urlEndPoint endpoint
+     * @param httpEntity httpEntity
+     * @param object object type
+     * @return
+     */
+    private ResponseEntity<?> getRequests(String urlEndPoint, Class<?> object, HttpEntity<?> httpEntity) {
+
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setMessageConverters(this.getMessageConverters());
+        return restTemplate.getForEntity(urlEndPoint, object, httpEntity);
+    }
+
+    /**
+     * Method to get user spotify tokens or refresh access token
+     * @return ResponseEntity<TokenDTO> tokens or token info
+     */
+    private ResponseEntity<TokenDTO> getTokenDTOAuthAndRefresh(String urlEndPoint,
+                                                               HttpEntity<MultiValueMap<String, String>> parametersHttpEntity) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        restTemplate.setMessageConverters(this.getMessageConverters());
+
+        return restTemplate.postForEntity(urlEndPoint, parametersHttpEntity, TokenDTO.class);
 
     }
 
     /**
      * Check if token is valid; if not try refresh token
-     * @param userToken
+     * @param userToken user Token entity info
      */
     private boolean isTokenExpired(Token userToken) {
         Timestamp checkTime =
                 Timestamp.from(userToken.getLastUpdateTime().toInstant().plusSeconds(userToken.getExpires_in()));
 
-        if(checkTime.before(Timestamp.from(Instant.now()))) {
-            // refresh token
-            return true;
-        } else {
-            return false;
-        }
+        return checkTime.before(Timestamp.from(Instant.now()));
     }
 
     /**
@@ -204,6 +219,9 @@ public class SpotifyService {
      * @return HttpHeaders
      */
     private HttpHeaders getHttpHeaders(Token userToken) {
+
+        this.refreshAccessToken(); // if needed this will refresh the access token
+
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -233,8 +251,8 @@ public class SpotifyService {
     }
 
     /**
-     * Get HttpHeaders for Authorization flow and refresh tokens
-     * @return
+     * Get HttpHeaders for Authorization flow or refresh access token
+     * @return HttpHeaders for Authorization flow or refresh access token
      */
     public HttpHeaders getHttpHeadersAuth() {
         String stringToBeEncoded =
@@ -249,6 +267,10 @@ public class SpotifyService {
         return httpHeaders;
     }
 
+    /**
+     * Method to get MessageConverter(s) for JSON and x-www-...
+     * @return
+     */
     private List<HttpMessageConverter<?>> getMessageConverters() {
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         converters.add(new FormHttpMessageConverter()); // Message converter for application/x-www-urlencoded -> Request

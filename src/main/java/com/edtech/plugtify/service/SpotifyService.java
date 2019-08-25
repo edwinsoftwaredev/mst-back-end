@@ -20,10 +20,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -156,8 +154,19 @@ public class SpotifyService {
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(parameters, httpHeaders);
 
         // first, we get the last 50 played tracks
-        ResponseEntity<SpotifyPlayHistoryDTO> reponsePlayHistory =
-                (ResponseEntity<SpotifyPlayHistoryDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyPlayHistoryDTO.class, httpEntity));
+        ResponseEntity<SpotifyPlayHistoryDTO[]> responsePlayHistory =
+                (ResponseEntity<SpotifyPlayHistoryDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyPlayHistoryDTO[].class, httpEntity));
+
+        if(!responsePlayHistory.hasBody()) {
+            throw new InternalServerErrorException("There are not Recently played Tracks for this user");
+        }
+
+        // Second, we get the full objects for each track recently played
+
+        // --> getting the ids from responsePlayHistory and save those in a String variable
+        String ids = Arrays.stream(responsePlayHistory.getBody()).map(track -> {
+            return track.getTrack().getId();
+        }).collect(Collectors.joining(","));
     }
 
     /**

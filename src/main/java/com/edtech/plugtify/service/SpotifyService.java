@@ -5,9 +5,7 @@ import com.edtech.plugtify.domain.Token;
 import com.edtech.plugtify.domain.User;
 import com.edtech.plugtify.repository.TokenRepository;
 import com.edtech.plugtify.repository.UserRepository;
-import com.edtech.plugtify.service.dto.AuthorizationCodeDTO;
-import com.edtech.plugtify.service.dto.SpotifyUserDTO;
-import com.edtech.plugtify.service.dto.TokenDTO;
+import com.edtech.plugtify.service.dto.*;
 import com.edtech.plugtify.web.rest.errors.InternalServerErrorException;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.springframework.http.*;
@@ -140,6 +138,26 @@ public class SpotifyService {
         }
 
         return userToken;
+    }
+
+    /**
+     * Get the recently played tracks by the user
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public SpotifyTrackDTO[] getRecentlyPlayed() {
+        Token userToken = this.getCurrentUserToken();
+
+        HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
+
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
+        parameters.add("limit", "50"); // query parameter to get the last 50 played tracks
+
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(parameters, httpHeaders);
+
+        // first, we get the last 50 played tracks
+        ResponseEntity<SpotifyPlayHistoryDTO> reponsePlayHistory =
+                (ResponseEntity<SpotifyPlayHistoryDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyPlayHistoryDTO.class, httpEntity));
     }
 
     /**

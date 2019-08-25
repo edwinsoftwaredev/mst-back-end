@@ -4,11 +4,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
+
 @Getter
 @Setter
 @NoArgsConstructor
-public class SpotifyArtistDTO {
-    private String id;
-    private String name;
-    private String type;
+public class SpotifyPlayHistoryDTO {
+    private SpotifyTrackDTO track;
+    private Timestamp played_at;
 }

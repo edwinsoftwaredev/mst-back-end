@@ -8,5 +8,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SpotifyTrackDTO {
-
+    private SpotifyAlbumDTO album;
+    private SpotifyArtistDTO[] artists;
+    private int duration_ms;
+    private SpotifyExternalUrlDTO external_urls;
+    private String id;
+    private Boolean is_playable;
+    private String name;
+    private int popularity;
+    private String preview_url;
+    private String type;
+    private SpotifyAudioFeatureDTO audio_feature;
 }

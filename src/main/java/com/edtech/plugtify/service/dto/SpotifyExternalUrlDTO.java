@@ -8,4 +8,5 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SpotifyExternalUrlDTO {
+    private String spotify;
 }

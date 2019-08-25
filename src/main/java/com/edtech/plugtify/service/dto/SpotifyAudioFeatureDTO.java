@@ -8,4 +8,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SpotifyAudioFeatureDTO {
+    private float acousticness;
+    private float danceability;
+    private float energy;
+    private String id;
+    private float instrumentalness;
+    private float liveness;
+    private float speechiness;
+    private float tempo;
+    private String type;
+    private float valence;
 }

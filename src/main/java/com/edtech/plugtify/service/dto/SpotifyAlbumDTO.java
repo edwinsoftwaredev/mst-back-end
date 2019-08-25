@@ -8,4 +8,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SpotifyAlbumDTO {
+    private String id;
+    private SpotifyImageAlbumDTO[] images;
+    private String name;
+    private String type;
 }

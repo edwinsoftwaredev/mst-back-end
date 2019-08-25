@@ -158,7 +158,7 @@ public class SpotifyService {
     }
 
     /**
-     * Method to create a Client(Front-End) ResponseEntity base on the SpotifyReponseEntity
+     * Method to create a Client(Front-End) ResponseEntity based on the SpotifyReponseEntity.
      * this is because if we return the ResponseEntity from Spotify our Nginx server will reject the response!!
      * @param responseEntity
      * @return the new ResponseEntity for the Front-End
@@ -267,7 +267,7 @@ public class SpotifyService {
     }
 
     /**
-     * Method to get MessageConverter(s) for JSON and x-www-...
+     * Method to get MessageConverter(s) for JSON and x-www-urlencoded
      * @return
      */
     private List<HttpMessageConverter<?>> getMessageConverters() {

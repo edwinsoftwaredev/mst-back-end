@@ -143,7 +143,7 @@ public class SpotifyService {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public SpotifyTrackDTO[] getRecentlyPlayed() {
+    public ResponseEntity<SpotifyTrackDTO[]> getRecentlyPlayed() {
         Token userToken = this.getCurrentUserToken();
 
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
@@ -153,7 +153,7 @@ public class SpotifyService {
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(parameters, httpHeaders);
 
-        // first, we get the last 50 played tracks
+        // first, we get the last 50 played tracks -> tracks objects are simplified
         ResponseEntity<SpotifyPlayHistoryDTO[]> responsePlayHistory =
                 (ResponseEntity<SpotifyPlayHistoryDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyPlayHistoryDTO[].class, httpEntity));
 
@@ -163,10 +163,22 @@ public class SpotifyService {
 
         // Second, we get the full objects for each track recently played
 
-        // --> getting the ids from responsePlayHistory and save those in a String variable
+        // --> getting the ids from responsePlayHistory for each track and save them in a String variable
         String ids = Arrays.stream(responsePlayHistory.getBody()).map(track -> {
             return track.getTrack().getId();
-        }).collect(Collectors.joining(","));
+        }).collect(Collectors.joining(",")); // separating each id with a ,
+
+        // Third, we get the full track object for each id in the ids variable
+
+        parameters = new LinkedMultiValueMap<>();
+        parameters.add("ids", ids);
+
+        httpEntity = new HttpEntity<>(parameters, httpHeaders);
+
+        ResponseEntity<SpotifyTrackDTO[]> responseTracks =
+                (ResponseEntity<SpotifyTrackDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_TRACKS, SpotifyTrackDTO[].class, httpEntity));
+
+        return responseTracks;
     }
 
     /**

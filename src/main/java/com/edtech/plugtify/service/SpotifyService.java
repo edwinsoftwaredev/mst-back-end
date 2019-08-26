@@ -154,8 +154,8 @@ public class SpotifyService {
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(parameters, httpHeaders);
 
         // first, we get the last 50 played tracks -> tracks objects are simplified
-        ResponseEntity<SpotifyPlayHistoryDTO[]> responsePlayHistory =
-                (ResponseEntity<SpotifyPlayHistoryDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyPlayHistoryDTO[].class, httpEntity));
+        ResponseEntity<SpotifyItemsDTO> responsePlayHistory =
+                (ResponseEntity<SpotifyItemsDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyItemsDTO.class, httpEntity));
 
         if(!responsePlayHistory.hasBody()) {
             throw new InternalServerErrorException("There are not Recently played Tracks for this user");
@@ -164,8 +164,8 @@ public class SpotifyService {
         // Second, we get the full objects for each track recently played
 
         // --> getting the ids from responsePlayHistory for each track and save them in a String variable
-        String ids = Arrays.stream(responsePlayHistory.getBody()).map(track -> {
-            return track.getTrack().getId();
+        String ids = Arrays.stream(responsePlayHistory.getBody().getItems()).map(historyObject -> {
+            return historyObject.getTrack().getId();
         }).collect(Collectors.joining(",")); // separating each id with a ,
 
         // Third, we get the full track object for each id in the ids variable

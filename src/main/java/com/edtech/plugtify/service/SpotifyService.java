@@ -178,7 +178,25 @@ public class SpotifyService {
         ResponseEntity<SpotifyTrackDTO[]> responseTracks =
                 (ResponseEntity<SpotifyTrackDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_TRACKS, SpotifyTrackDTO[].class, httpEntity));
 
-        return responseTracks;
+        if(!responseTracks.hasBody()) {
+            throw new InternalServerErrorException("There was a problem getting the full object for each tracks");
+        }
+
+        // Forth, we get the features of each track by id
+        ResponseEntity<SpotifyAudioFeaturesDTO[]> responseTracksFeatures =
+                (ResponseEntity<SpotifyAudioFeaturesDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_FEATURES_TRACKS, SpotifyAudioFeaturesDTO[].class, httpEntity));
+
+        SpotifyTrackDTO[] tracks = (SpotifyTrackDTO[]) Arrays.stream(responseTracks.getBody()).peek(track -> {
+            // merge the track with its features
+
+            SpotifyAudioFeaturesDTO audioFeatures = Arrays.stream(responseTracksFeatures.getBody())
+                    .filter(trackFeature -> trackFeature.getId().equals(track.getId())).collect(Collectors.toList()).get(0);
+
+            track.setAudio_feature(audioFeatures);
+
+        }).toArray();
+
+        return new ResponseEntity<>(tracks, HttpStatus.OK) ;
     }
 
     /**

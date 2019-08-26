@@ -1,6 +1,7 @@
 package com.edtech.plugtify.web.rest;
 
 import com.edtech.plugtify.service.SpotifyService;
+import com.edtech.plugtify.service.dto.SpotifyTrackDTO;
 import com.edtech.plugtify.service.dto.SpotifyUserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class SpotifyResource {
 
-    SpotifyService spotifyService;
+    private SpotifyService spotifyService;
 
     public SpotifyResource(SpotifyService spotifyService) {
         this.spotifyService = spotifyService;
@@ -20,7 +21,11 @@ public class SpotifyResource {
 
     @GetMapping("/current-user")
     public ResponseEntity<SpotifyUserDTO> getCurrentUser() {
-
         return this.spotifyService.getCurrentUser();
+    }
+
+    @GetMapping("/recently-played")
+    public ResponseEntity<SpotifyTrackDTO[]> getRecentlyPlayedTracks() {
+        return this.spotifyService.getRecentlyPlayed();
     }
 }

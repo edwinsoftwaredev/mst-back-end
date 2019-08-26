@@ -18,5 +18,5 @@ public class SpotifyTrackDTO {
     private int popularity;
     private String preview_url;
     private String type;
-    private SpotifyAudioFeatureDTO audio_feature;
+    private SpotifyAudioFeaturesDTO audio_feature;
 }

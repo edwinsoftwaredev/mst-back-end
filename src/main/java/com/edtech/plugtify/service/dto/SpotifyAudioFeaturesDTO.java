@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SpotifyAudioFeatureDTO {
+public class SpotifyAudioFeaturesDTO {
     private float acousticness;
     private float danceability;
     private float energy;

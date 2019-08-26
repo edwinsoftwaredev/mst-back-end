@@ -206,6 +206,7 @@ public class SpotifyService {
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
         UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_RECOMMENDATIONS)
+                .queryParam("limit", 50)
                 .queryParam("seed_tracks", seedTracks)
                 .queryParam("target_acousticness", acousticness)
                 .queryParam("target_danceability", danceability)
@@ -223,7 +224,15 @@ public class SpotifyService {
         ResponseEntity<SpotifyTrackArrayDTO> arrayTracksSimplified =
                 (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyTrackArrayDTO.class, httpEntity));
 
-        String ids = Arrays.stream(arrayTracksSimplified.getBody().getTracks())
+        List<SpotifyTrackDTO> listTracksSimplified = Arrays.stream(arrayTracksSimplified.getBody().getTracks())
+                .collect(Collectors.toList());
+
+        // removing repeated tracks
+        Arrays.stream(tracksResponse.getBody()).forEach(spotifyTrackDTO -> {
+            listTracksSimplified.removeIf(track -> track.getId().equals(spotifyTrackDTO.getId()));
+        });
+
+        String ids = Arrays.stream(listTracksSimplified.toArray(SpotifyTrackDTO[]::new))
                 .map(track -> track.getId())
                 .collect(Collectors.joining(","));
 

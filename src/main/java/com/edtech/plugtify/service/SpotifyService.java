@@ -140,16 +140,33 @@ public class SpotifyService {
     }
 
     public ResponseEntity<SpotifyTrackDTO[]> getSuggestedPlaylist() {
-        float acousticness = 0.5f;
-        float danceability = 0.5f;
-        float energy = 0.5f;
-        float instrumentalness = 0.5f;
-        float liveness = 0.5f;
-        float speechiness = 0.5f;
-        float valence = 0.5f;
-        int popularity = 100; // --> 0-100 value
+        float acousticness = 0.0f;
+        float danceability = 0.0f;
+        float energy = 0.0f;
+        float instrumentalness = 0.0f;
+        float liveness = 0.0f;
+        float speechiness = 0.0f;
+        float valence = 0.0f;
+        int popularity = 0; // --> 0-100 value
 
-        this.getRecentlyPlayed().getBody();
+        // get average of each audio feature
+
+        ResponseEntity<SpotifyTrackDTO[]> tracksResponse =
+                this.getRecentlyPlayed();
+
+        if(!tracksResponse.hasBody()) {
+            throw new InternalServerErrorException("Can't get recently played tracks");
+        }
+
+        for (SpotifyTrackDTO track: tracksResponse.getBody()) {
+            acousticness = acousticness + track.getAudio_feature().getAcousticness();
+            danceability = danceability + track.getAudio_feature().getDanceability();
+            energy = energy + track.getAudio_feature().getEnergy();
+            instrumentalness = instrumentalness + track.getAudio_feature().getInstrumentalness();
+            liveness = liveness + track.getAudio_feature().getLiveness();
+            speechiness = speechiness + track.getAudio_feature().getSpeechiness();
+            valence = valence + track.getAudio_feature().getValence();
+        };
     }
 
     /**

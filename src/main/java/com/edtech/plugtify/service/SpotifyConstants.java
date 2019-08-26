@@ -11,6 +11,7 @@ final class SpotifyConstants {
     static final String URL_RECENTLY_PLAYED = "https://api.spotify.com/v1/me/player/recently-played";
     static final String URL_TRACKS = "https://api.spotify.com/v1/tracks";
     static final String URL_FEATURES_TRACKS = "https://api.spotify.com/v1/audio-features";
+    static final String URL_RECOMMENDATIONS = "https://api.spotify.com/v1/recommendations";
 
     private SpotifyConstants() {}
 

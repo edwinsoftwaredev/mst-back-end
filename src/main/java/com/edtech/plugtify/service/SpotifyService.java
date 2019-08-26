@@ -185,11 +185,28 @@ public class SpotifyService {
         valence = valence / cantTracks;
         popularity = (int) (popularity / cantTracks);
 
+        // get 5 random number between 0 and 49 to get the tracks in those indexs, and get the ids
+        Random random = new Random();
+
+        String seedTracks = "";
+        Set<String> seedsTracks = new HashSet<>();
+
+        if(tracksResponse.getBody().length < 10) {
+            seedTracks = tracksResponse.getBody()[0].getId();
+        } else {
+            do {
+                seedsTracks.add(tracksResponse.getBody()[random.nextInt(tracksResponse.getBody().length)].getId());
+            } while(seedsTracks.size() <= 5);
+
+            seedTracks = seedsTracks.stream().collect(Collectors.joining(","));
+        }
+
         Token userToken = this.getCurrentUserToken();
 
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
         UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_RECOMMENDATIONS)
+                .queryParam("seed_artists", seedTracks)
                 .queryParam("target_acousticness", acousticness)
                 .queryParam("target_danceability", danceability)
                 .queryParam("target_energy", energy)

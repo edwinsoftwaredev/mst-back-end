@@ -139,6 +139,11 @@ public class SpotifyService {
         return userToken;
     }
 
+    /**
+     * Method to get recommended tracks
+     * @return ResponseEntity<SpotifyTrackDTO[]>
+     */
+    @SuppressWarnings("unchecked")
     public ResponseEntity<SpotifyTrackDTO[]> getSuggestedPlaylist() {
         float acousticness = 0.0f;
         float danceability = 0.0f;
@@ -158,6 +163,8 @@ public class SpotifyService {
             throw new InternalServerErrorException("Can't get recently played tracks");
         }
 
+        int cantTracks = tracksResponse.getBody().length;
+
         for (SpotifyTrackDTO track: tracksResponse.getBody()) {
             acousticness = acousticness + track.getAudio_feature().getAcousticness();
             danceability = danceability + track.getAudio_feature().getDanceability();
@@ -166,7 +173,56 @@ public class SpotifyService {
             liveness = liveness + track.getAudio_feature().getLiveness();
             speechiness = speechiness + track.getAudio_feature().getSpeechiness();
             valence = valence + track.getAudio_feature().getValence();
+            popularity = popularity + track.getPopularity();
         };
+
+        acousticness = acousticness / cantTracks;
+        danceability = danceability / cantTracks;
+        energy = energy / cantTracks;
+        instrumentalness = instrumentalness / cantTracks;
+        liveness = liveness / cantTracks;
+        speechiness = speechiness / cantTracks;
+        valence = valence / cantTracks;
+        popularity = (int) (popularity / cantTracks);
+
+        Token userToken = this.getCurrentUserToken();
+
+        HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
+
+        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_RECOMMENDATIONS)
+                .queryParam("target_acousticness", acousticness)
+                .queryParam("target_danceability", danceability)
+                .queryParam("target_energy", energy)
+                .queryParam("target_instrumentalness", instrumentalness)
+                .queryParam("target_liveness", liveness)
+                .queryParam("target_speechiness", speechiness)
+                .queryParam("target_valence", valence)
+                .queryParam("min_popularity", popularity);
+
+        HttpEntity<MultiValueMap<String, String>> httpEntity =
+                new HttpEntity<>(httpHeaders);
+
+        // array of tracks simplified
+        ResponseEntity<SpotifyTrackArrayDTO> arrayTracksSimplified =
+                (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyTrackArrayDTO.class, httpEntity));
+
+        String ids = Arrays.stream(arrayTracksSimplified.getBody().getTracks())
+                .map(track -> track.getId())
+                .collect(Collectors.joining(","));
+
+        // array of full object tracks
+        urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_TRACKS)
+                .queryParam("ids", ids);
+
+        ResponseEntity<SpotifyTrackArrayDTO> responseTracks =
+                (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyTrackArrayDTO.class, httpEntity));
+
+        if(!responseTracks.hasBody()) {
+            throw new InternalServerErrorException("There was a problem getting the full object for each tracks");
+        }
+
+        return new ResponseEntity<>(Arrays.stream(responseTracks.getBody().getTracks()).toArray(SpotifyTrackDTO[]::new), HttpStatus.OK) ;
+
     }
 
     /**

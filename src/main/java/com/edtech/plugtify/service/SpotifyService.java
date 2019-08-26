@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -148,14 +149,14 @@ public class SpotifyService {
 
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
-        parameters.add("limit", "50"); // query parameter to get the last 50 played tracks
+        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_RECENTLY_PLAYED)
+                .queryParam("limit", 50); // query parameter to get the last 50 played tracks
 
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(parameters, httpHeaders);
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(httpHeaders);
 
         // first, we get the last 50 played tracks -> tracks objects are simplified
         ResponseEntity<SpotifyItemsDTO> responsePlayHistory =
-                (ResponseEntity<SpotifyItemsDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_RECENTLY_PLAYED, SpotifyItemsDTO.class, httpEntity));
+                (ResponseEntity<SpotifyItemsDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyItemsDTO.class, httpEntity));
 
         if(!responsePlayHistory.hasBody()) {
             throw new InternalServerErrorException("There are not Recently played Tracks for this user");
@@ -170,21 +171,22 @@ public class SpotifyService {
 
         // Third, we get the full track object for each id in the ids variable
 
-        parameters = new LinkedMultiValueMap<>();
-        parameters.add("ids", ids);
-
-        httpEntity = new HttpEntity<>(parameters, httpHeaders);
+        urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_TRACKS)
+                .queryParam("ids", ids);
 
         ResponseEntity<SpotifyTrackArrayDTO> responseTracks =
-                (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_TRACKS, SpotifyTrackArrayDTO.class, httpEntity));
+                (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyTrackArrayDTO.class, httpEntity));
 
         if(!responseTracks.hasBody()) {
             throw new InternalServerErrorException("There was a problem getting the full object for each tracks");
         }
 
+        urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_FEATURES_TRACKS)
+                .queryParam("ids", ids);
+
         // Forth, we get the features of each track by id
         ResponseEntity<SpotifyAudioFeatureArrayDTO> responseTracksFeatures =
-                (ResponseEntity<SpotifyAudioFeatureArrayDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_FEATURES_TRACKS, SpotifyAudioFeatureArrayDTO.class, httpEntity));
+                (ResponseEntity<SpotifyAudioFeatureArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyAudioFeatureArrayDTO.class, httpEntity));
 
         SpotifyTrackDTO[] tracks = (SpotifyTrackDTO[]) Arrays.stream(responseTracks.getBody().getTracks()).peek(track -> {
             // merge the track with its features

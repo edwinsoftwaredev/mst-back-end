@@ -170,28 +170,26 @@ public class SpotifyService {
 
         // Third, we get the full track object for each id in the ids variable
 
-        System.out.println(ids);
-
         parameters = new LinkedMultiValueMap<>();
         parameters.add("ids", ids);
 
         httpEntity = new HttpEntity<>(parameters, httpHeaders);
 
-        ResponseEntity<SpotifyTrackDTO[]> responseTracks =
-                (ResponseEntity<SpotifyTrackDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_TRACKS, SpotifyTrackDTO[].class, httpEntity));
+        ResponseEntity<SpotifyTrackArrayDTO> responseTracks =
+                (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_TRACKS, SpotifyTrackArrayDTO.class, httpEntity));
 
         if(!responseTracks.hasBody()) {
             throw new InternalServerErrorException("There was a problem getting the full object for each tracks");
         }
 
         // Forth, we get the features of each track by id
-        ResponseEntity<SpotifyAudioFeaturesDTO[]> responseTracksFeatures =
-                (ResponseEntity<SpotifyAudioFeaturesDTO[]>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_FEATURES_TRACKS, SpotifyAudioFeaturesDTO[].class, httpEntity));
+        ResponseEntity<SpotifyAudioFeatureArrayDTO> responseTracksFeatures =
+                (ResponseEntity<SpotifyAudioFeatureArrayDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_FEATURES_TRACKS, SpotifyAudioFeatureArrayDTO.class, httpEntity));
 
-        SpotifyTrackDTO[] tracks = (SpotifyTrackDTO[]) Arrays.stream(responseTracks.getBody()).peek(track -> {
+        SpotifyTrackDTO[] tracks = (SpotifyTrackDTO[]) Arrays.stream(responseTracks.getBody().getTracks()).peek(track -> {
             // merge the track with its features
 
-            SpotifyAudioFeaturesDTO audioFeatures = Arrays.stream(responseTracksFeatures.getBody())
+            SpotifyAudioFeaturesDTO audioFeatures = Arrays.stream(responseTracksFeatures.getBody().getAudio_features())
                     .filter(trackFeature -> trackFeature.getId().equals(track.getId())).collect(Collectors.toList()).get(0);
 
             track.setAudio_feature(audioFeatures);

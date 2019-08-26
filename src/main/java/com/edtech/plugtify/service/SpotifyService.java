@@ -198,7 +198,7 @@ public class SpotifyService {
                 seedsTracks.add(tracksResponse.getBody()[random.nextInt(tracksResponse.getBody().length)].getId());
             } while(seedsTracks.size() <= 5);
 
-            seedTracks = seedsTracks.stream().collect(Collectors.joining(","));
+            seedTracks = String.join(",", seedsTracks);
         }
 
         Token userToken = this.getCurrentUserToken();
@@ -206,7 +206,7 @@ public class SpotifyService {
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
         UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_RECOMMENDATIONS)
-                .queryParam("seed_artists", seedTracks)
+                .queryParam("seed_tracks", seedTracks)
                 .queryParam("target_acousticness", acousticness)
                 .queryParam("target_danceability", danceability)
                 .queryParam("target_energy", energy)

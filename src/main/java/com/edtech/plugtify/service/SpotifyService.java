@@ -170,6 +170,8 @@ public class SpotifyService {
 
         // Third, we get the full track object for each id in the ids variable
 
+        System.out.println(ids);
+
         parameters = new LinkedMultiValueMap<>();
         parameters.add("ids", ids);
 

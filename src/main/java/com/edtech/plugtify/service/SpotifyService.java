@@ -139,6 +139,19 @@ public class SpotifyService {
         return userToken;
     }
 
+    public ResponseEntity<SpotifyTrackDTO[]> getSuggestedPlaylist() {
+        float acousticness = 0.5f;
+        float danceability = 0.5f;
+        float energy = 0.5f;
+        float instrumentalness = 0.5f;
+        float liveness = 0.5f;
+        float speechiness = 0.5f;
+        float valence = 0.5f;
+        int popularity = 100; // --> 0-100 value
+
+        this.getRecentlyPlayed().getBody();
+    }
+
     /**
      * Get the recently played tracks by the user
      * @return

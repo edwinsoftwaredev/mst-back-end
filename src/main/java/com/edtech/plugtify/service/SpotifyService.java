@@ -19,11 +19,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -62,7 +57,7 @@ public class SpotifyService {
         parameterMap.add("redirect_uri", authorizationCode.getRedirect_uri());
 
         HttpEntity<MultiValueMap<String, String>> httpEntity =
-                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+                new HttpEntity<>(parameterMap, httpHeaders);
 
         ResponseEntity<TokenDTO> newTokenResponse =
                 this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_EXCHANGE_TOKEN, httpEntity);
@@ -93,6 +88,7 @@ public class SpotifyService {
 
             // set new token to user
             Token newToken = new Token();
+            assert tokenDTORes != null;
             newToken.setAccess_token(tokenDTORes.getAccess_token());
             newToken.setExpires_in(tokenDTORes.getExpires_in());
             newToken.setRefresh_token(tokenDTORes.getRefresh_token());
@@ -115,50 +111,43 @@ public class SpotifyService {
 
     /**
      * check if user has a playlist
-     * @param tracks
-     * @return
+     * @param tracks track to add
+     * @return the response
      */
     public ResponseEntity<Void> addPlaylist(SpotifyTrackDTO[] tracks) {
         Optional<User> userOptional = this.userService.getCurrentUser();
 
-        userOptional.ifPresentOrElse(user -> {
+        return userOptional.map(user -> {
+            Token userToken = user.getToken();
 
-            if(user.getPlaylistId() != null) {
-                try {
-                    this.replaceTrackPlaylist(tracks, user.getPlaylistId(), user);
-                } catch (UnsupportedEncodingException | URISyntaxException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    this.createPlaylist(tracks, user);
-                } catch (UnsupportedEncodingException | URISyntaxException e) {
-                    e.printStackTrace();
-                }
+            if(this.isTokenExpired(userToken)) {
+                this.refreshAccessToken(userToken);
             }
 
-        }, () -> {
-            throw new UserNotFoundException();
-        });
+            if(user.getPlaylistId() != null) {
+                ResponseEntity<Void> response = this.replaceTrackPlaylist(tracks, user.getPlaylistId(), userToken);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+                // validate if the tracks were replaced: for example the playlist was deleted
+                if(response.getStatusCodeValue() == 404 || response.getStatusCodeValue() == 304) {
+                   return this.createPlaylist(tracks, user, userToken);
+                }
+
+                return response;
+            } else {
+                return this.createPlaylist(tracks, user, userToken);
+            }
+        }).orElseThrow(UserNotFoundException::new);
     }
 
     /**
      * Method to replace tracks in playlist
-     * @param tracks
-     * @param playlistId
-     * @return
+     * @param tracks tracks to add to the playlist
+     * @param playlistId the playlist id
+     * @return response
      */
-    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, User user) throws UnsupportedEncodingException, URISyntaxException {
+    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) {
 
         SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).toArray(SpotifyTrackDTO[]::new);
-
-        Token userToken = this.getCurrentUserToken();
-
-        if(this.isTokenExpired(userToken)) {
-            this.refreshAccessToken(userToken);
-        }
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
@@ -166,7 +155,10 @@ public class SpotifyService {
         headers.add("Authorization", value);
         headers.add("Content-Type", "application/json");
 
-        String urlReplaceTracks = "https://api.spotify.com/v1/playlists/"+playlistId+"/tracks";
+        String urlReplaceTracks = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks";
+
+        Map<String, String> paramsReplaceTracks = new HashMap<>();
+        paramsReplaceTracks.put("playlist_id", playlistId);
 
         String uris = Arrays.stream(tracksLocal).map(track -> track.getUri()).collect(Collectors.joining(","));
 
@@ -178,37 +170,25 @@ public class SpotifyService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
 
-        ResponseEntity<Void> responseReplace = restTemplate.exchange(builder.toUriString(), HttpMethod.PUT, httpEntityReplace, Void.class);
-
-        // validate if the tracks were replaced: for example the playlist was deleted
-        if(responseReplace.getStatusCodeValue() == 404 || responseReplace.getStatusCodeValue() == 304) {
-            this.createPlaylist(tracks, user);
-        }
-
-        restTemplate.put(builder.toUriString(), httpEntityReplace);
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        return restTemplate.exchange(builder.buildAndExpand(paramsReplaceTracks).toUriString(), HttpMethod.PUT, httpEntityReplace, Void.class);
     }
 
     /**
      * Method to create a playlist
-     * @param
-     * @return
+     * @param tracks tracks to add to the playlist
+     * @param user user owner of the playlist
+     * @param userToken tokens
+     * @return ResponseEntity
      */
-    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user) throws UnsupportedEncodingException, URISyntaxException {
-
-        Token userToken = this.getCurrentUserToken();
+    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user, Token userToken) {
 
         // creating playlist --> POST
-        String urlCreateList = "https://api.spotify.com/v1/users/"+this.getCurrentUser().getBody().getId()+"/playlists";
+        String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
 
-        URI uri = new URI(urlCreateList);
+        Map<String, String> urlParams = new HashMap<>();
+        urlParams.put("user_id", Objects.requireNonNull(this.getCurrentUser().getBody()).getId());
 
-        System.out.println(uri.toString());
-
-        if(this.isTokenExpired(userToken)) {
-            this.refreshAccessToken(userToken);
-        }
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
@@ -221,32 +201,23 @@ public class SpotifyService {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uri, httpEntity, SpotifyPlaylistDTO.class);
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 
-        // setting tracks to the playlist  --> PUT
-        String playlistId = playlistResponse.getBody().getId();
+        String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 
-        String urlReplaceTracks = "https://api.spotify.com/v1/playlists/"+playlistId+"/tracks";
-
-        String uris = Arrays.stream(tracks).map(track -> track.getUri()).collect(Collectors.joining(","));
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(urlReplaceTracks)
-                .queryParam("uris", uris);
-
-        HttpEntity httpEntityReplace = new HttpEntity(headers);
-
-        restTemplate.put(builder.toUriString(), httpEntityReplace);
-
-        // save playlistId
         user.setPlaylistId(playlistId);
 
         this.userRepository.save(user);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        if(playlistResponse.getStatusCodeValue() == 200 || playlistResponse.getStatusCodeValue() == 201) {
+            return this.replaceTrackPlaylist(tracks, playlistId, userToken);
+        } else {
+            return new ResponseEntity<>(playlistResponse.getStatusCode());
+        }
     }
 
     // method to refresh access token if needed
-    public Token refreshAccessToken(Token userToken) {
+    public void refreshAccessToken(Token userToken) {
         HttpHeaders httpHeaders = this.getHttpHeadersAuth();
 
         MultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
@@ -272,8 +243,6 @@ public class SpotifyService {
         } else {
             throw new InternalServerErrorException("response body is empty");
         }
-
-        return userToken;
     }
 
     /**
@@ -390,7 +359,7 @@ public class SpotifyService {
 
     /**
      * Get the recently played tracks by the user
-     * @return
+     * @return response
      */
     @SuppressWarnings("unchecked")
     public ResponseEntity<SpotifyTrackDTO[]> getRecentlyPlayed() {
@@ -472,7 +441,7 @@ public class SpotifyService {
     /**
      * Method to create a Client(Front-End) ResponseEntity based on the SpotifyReponseEntity.
      * this is because if we return the ResponseEntity from Spotify our Nginx server will reject the response!!
-     * @param responseEntity
+     * @param responseEntity response
      * @return the new ResponseEntity for the Front-End
      */
     @SuppressWarnings("unchecked")

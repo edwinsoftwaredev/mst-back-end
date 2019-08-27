@@ -19,6 +19,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -125,16 +128,30 @@ public class SpotifyService {
             }
 
             if(user.getPlaylistId() != null) {
-                ResponseEntity<Void> response = this.replaceTrackPlaylist(tracks, user.getPlaylistId(), userToken);
+                ResponseEntity<Void> response = null;
+
+                try {
+                    response = this.replaceTrackPlaylist(tracks, user.getPlaylistId(), userToken);
+                } catch (UnsupportedEncodingException e) {
+                    throw new InternalServerErrorException(e.getMessage());
+                }
 
                 // validate if the tracks were replaced: for example the playlist was deleted
                 if(response.getStatusCodeValue() == 404 || response.getStatusCodeValue() == 304) {
-                   return this.createPlaylist(tracks, user, userToken);
+                    try {
+                        return this.createPlaylist(tracks, user, userToken);
+                    } catch (UnsupportedEncodingException e) {
+                        throw new InternalServerErrorException(e.getMessage());
+                    }
                 }
 
                 return response;
             } else {
-                return this.createPlaylist(tracks, user, userToken);
+                try {
+                    return this.createPlaylist(tracks, user, userToken);
+                } catch (UnsupportedEncodingException e) {
+                    throw new InternalServerErrorException(e.getMessage());
+                }
             }
         }).orElseThrow(UserNotFoundException::new);
     }
@@ -145,7 +162,7 @@ public class SpotifyService {
      * @param playlistId the playlist id
      * @return response
      */
-    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) {
+    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) throws UnsupportedEncodingException {
 
         SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).toArray(SpotifyTrackDTO[]::new);
 
@@ -158,7 +175,7 @@ public class SpotifyService {
         String urlReplaceTracks = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks";
 
         Map<String, String> paramsReplaceTracks = new HashMap<>();
-        paramsReplaceTracks.put("playlist_id", playlistId);
+        paramsReplaceTracks.put("playlist_id", URLEncoder.encode(playlistId, StandardCharsets.UTF_8));
 
         String uris = Arrays.stream(tracksLocal).map(track -> track.getUri()).collect(Collectors.joining(","));
 
@@ -180,13 +197,16 @@ public class SpotifyService {
      * @param userToken tokens
      * @return ResponseEntity
      */
-    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user, Token userToken) {
+    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user, Token userToken) throws UnsupportedEncodingException {
 
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
 
         Map<String, String> urlParams = new HashMap<>();
-        urlParams.put("user_id", Objects.requireNonNull(this.getCurrentUser().getBody()).getId());
+        urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
+
+        System.out.println("--TEST--");
+        System.out.println(URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
 

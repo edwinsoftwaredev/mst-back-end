@@ -238,7 +238,8 @@ public class SpotifyService {
             }
 
         } catch (RestClientException e) {
-            System.out.println(e.toString());
+            System.out.println(e.getRootCause().getMessage());
+            System.out.println(e.getCause().getMessage());
             throw new RestClientException(e.getMessage());
         }
     }

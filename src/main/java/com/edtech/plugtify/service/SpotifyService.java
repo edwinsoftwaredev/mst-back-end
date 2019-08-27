@@ -203,12 +203,10 @@ public class SpotifyService {
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
 
-        String newUrl = "https://api.spotify.com/v1/me/playlists";
+        Map<String, String> urlParams = new HashMap<>();
+        urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
 
-        // Map<String, String> urlParams = new HashMap<>();
-        // urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
-
-        // UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
@@ -222,7 +220,7 @@ public class SpotifyService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
 
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(newUrl, httpEntity, SpotifyPlaylistDTO.class);
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 
         String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 

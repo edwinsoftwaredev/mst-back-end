@@ -10,5 +10,4 @@ import lombok.Setter;
 public class SpotifyPlaylistDTO {
     private String id;
     private String name;
-    private String owner;
 }

@@ -218,12 +218,10 @@ public class SpotifyService {
                 new HttpEntity<>("{\"name\":\"Plugtify Playlist\",\"description\":\"Playlist created with Plugtify\"}", headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        List<HttpMessageConverter<?>> converters = new ArrayList<>();
-        converters.add(new MappingJackson2HttpMessageConverter());
+        // List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        // converters.add(new MappingJackson2HttpMessageConverter());
 
-        restTemplate.setMessageConverters(converters);
-
-        System.out.println(uriBuilder.buildAndExpand(urlParams).toUriString());
+        // restTemplate.setMessageConverters(converters);
 
         ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 

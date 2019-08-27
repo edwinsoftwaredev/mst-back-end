@@ -200,8 +200,7 @@ public class SpotifyService {
         headers.add("Content-Type", "application/json");
 
         MultiValueMap<String, String> bodyParameters = new LinkedMultiValueMap<>();
-        bodyParameters.add("name", "Plugtify Playlist");
-        bodyParameters.add("description", "Playlist created with Plugtify");
+        bodyParameters.add("data", "{\"name\": \"Plugtify Playlist\", \"description\": \"Playlist created with Plugtify\"}");
 
         HttpEntity<MultiValueMap<String, String>> httpEntity =
                 new HttpEntity<>(bodyParameters, headers);

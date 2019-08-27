@@ -188,7 +188,9 @@ public class SpotifyService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
 
-        return restTemplate.exchange(builder.buildAndExpand(paramsReplaceTracks).toUriString(), HttpMethod.PUT, httpEntityReplace, Void.class);
+        ResponseEntity<Void> res = restTemplate.exchange(builder.buildAndExpand(paramsReplaceTracks).toUriString(), HttpMethod.PUT, httpEntityReplace, Void.class);
+
+        return new ResponseEntity<>(res.getStatusCode());
     }
 
     /**

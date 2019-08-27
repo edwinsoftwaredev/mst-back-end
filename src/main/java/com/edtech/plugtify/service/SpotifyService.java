@@ -143,7 +143,14 @@ public class SpotifyService {
 
         Token userToken = this.getCurrentUserToken();
 
-        HttpHeaders headers = this.getHttpHeaders(userToken);
+        if(this.isTokenExpired(userToken)) {
+            this.refreshAccessToken(userToken);
+        }
+
+        String value = userToken.getToken_type() + " " + userToken.getAccess_token();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", value);
         headers.add("Content-Type", "application/json");
 
         String urlReplaceTracks = "https://api.spotify.com/v1/playlists/"+playlistId+"/tracks";
@@ -182,7 +189,14 @@ public class SpotifyService {
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/"+this.getCurrentUser().getBody().getId()+"/playlists";
 
-        HttpHeaders headers = this.getHttpHeaders(userToken);
+        if(this.isTokenExpired(userToken)) {
+            this.refreshAccessToken(userToken);
+        }
+
+        String value = userToken.getToken_type() + " " + userToken.getAccess_token();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", value);
         headers.add("Content-Type", "application/json");
 
         MultiValueMap<String, String> bodyParameters = new LinkedMultiValueMap<>();

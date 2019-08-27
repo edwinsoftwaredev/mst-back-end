@@ -84,7 +84,7 @@ public class UserService {
         this.clearUserCaches(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // this method is readOnly = true the transaction to delete a user that comes from this method will not have effect
     public Optional<User> getCurrentUser() {
         return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneByLogin);
     }

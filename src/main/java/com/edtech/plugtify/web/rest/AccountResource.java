@@ -1,5 +1,6 @@
 package com.edtech.plugtify.web.rest;
 
+import com.edtech.plugtify.repository.UserRepository;
 import com.edtech.plugtify.service.SpotifyService;
 import com.edtech.plugtify.service.UserService;
 import com.edtech.plugtify.service.dto.ManagedUserVM;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api")
@@ -18,13 +20,16 @@ public class AccountResource {
 
     private UserService userService;
     private SpotifyService spotifyService;
+    private UserRepository userRepository;
 
     public AccountResource(
             UserService userService,
-            SpotifyService spotifyService
+            SpotifyService spotifyService,
+            UserRepository userRepository
     ) {
         this.userService = userService;
         this.spotifyService = spotifyService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -55,9 +60,9 @@ public class AccountResource {
      * @return Http Response
      */
     @DeleteMapping("/delete-account")
-    public ResponseEntity<Void> deleteCurrentUserAccount() {
-        return this.userService
-                .getCurrentUser()
+    public ResponseEntity<Void> deleteCurrentUserAccount(Principal principal) {
+        return this.userRepository
+                .findOneByLogin(principal.getName().toLowerCase().trim())
                 .map(user -> {
                     if(user.getPlaylistId() == null) {
                         this.userService.deleteUser(user);

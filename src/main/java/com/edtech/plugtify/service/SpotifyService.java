@@ -203,6 +203,8 @@ public class SpotifyService {
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
 
+        String newUrl = "https://api.spotify.com/v1/me/playlists";
+
         Map<String, String> urlParams = new HashMap<>();
         urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
 
@@ -225,7 +227,7 @@ public class SpotifyService {
 
         restTemplate.setMessageConverters(converters);
 
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(newUrl, httpEntity, SpotifyPlaylistDTO.class);
 
         String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 

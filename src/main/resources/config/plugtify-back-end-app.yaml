@@ -15,7 +15,7 @@ spec:
         app: plugtify-back-end
     spec:
       containers:
-        - image: gcr.io/plugtify/plugtify-back-end:v57
+        - image: gcr.io/plugtify/plugtify-back-end:v58
           name: plugtify-back-end
           env:
             - name: PLUGTIFY_DB_HOST

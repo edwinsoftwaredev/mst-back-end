@@ -30,10 +30,13 @@ public class UserDTO {
 
     private Boolean hasToken;
 
+    private String playlistId;
+
     public UserDTO(User user) {
         this.id = user.getId();
         this.login = user.getLogin();
         this.email = user.getEmail();
         this.hasToken = user.getHasToken();
+        this.playlistId = user.getPlaylistId();
     }
 }

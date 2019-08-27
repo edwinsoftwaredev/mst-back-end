@@ -19,4 +19,5 @@ public class SpotifyTrackDTO {
     private String preview_url;
     private String type;
     private SpotifyAudioFeaturesDTO audio_feature;
+    private String uri;
 }

@@ -4,9 +4,7 @@ import com.edtech.plugtify.service.SpotifyService;
 import com.edtech.plugtify.service.dto.SpotifyTrackDTO;
 import com.edtech.plugtify.service.dto.SpotifyUserDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -32,4 +30,10 @@ public class SpotifyResource {
     public ResponseEntity<SpotifyTrackDTO[]> getSuggestedPlaylist() {
         return this.spotifyService.getSuggestedPlaylist();
     }
+
+    @PostMapping("/add-playlist")
+    public ResponseEntity<Void> addPlaylist(@RequestBody SpotifyTrackDTO[] tracks) {
+        return this.spotifyService.addPlaylist(tracks);
+    }
+
 }

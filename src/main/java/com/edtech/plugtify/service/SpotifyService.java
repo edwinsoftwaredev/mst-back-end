@@ -196,7 +196,7 @@ public class SpotifyService {
         } else {
             do {
                 seedsTracks.add(tracksResponse.getBody()[random.nextInt(tracksResponse.getBody().length)].getId());
-            } while(seedsTracks.size() <= 5);
+            } while(seedsTracks.size() < 5);
 
             seedTracks = String.join(",", seedsTracks);
         }

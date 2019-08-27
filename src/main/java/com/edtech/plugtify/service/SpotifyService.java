@@ -203,10 +203,12 @@ public class SpotifyService {
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
 
-        Map<String, String> urlParams = new HashMap<>();
-        urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
+        String newUrl = "https://api.spotify.com/v1/me/playlists";
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
+        // Map<String, String> urlParams = new HashMap<>();
+        // urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
+
+        // UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
@@ -220,26 +222,18 @@ public class SpotifyService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
 
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = null;
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(newUrl, httpEntity, SpotifyPlaylistDTO.class);
 
-        try {
-            playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
+        String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 
-            String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
+        user.setPlaylistId(playlistId);
 
-            user.setPlaylistId(playlistId);
+        this.userRepository.save(user);
 
-            this.userRepository.save(user);
-
-            if(playlistResponse.getStatusCodeValue() == 200 || playlistResponse.getStatusCodeValue() == 201) {
-                return this.replaceTrackPlaylist(tracks, playlistId, userToken);
-            } else {
-                return new ResponseEntity<>(playlistResponse.getStatusCode());
-            }
-
-        } catch (RestClientException e) {
-            System.out.println(e.getCause().getMessage());
-            throw new RestClientException(e.getMessage());
+        if(playlistResponse.getStatusCodeValue() == 200 || playlistResponse.getStatusCodeValue() == 201) {
+            return this.replaceTrackPlaylist(tracks, playlistId, userToken);
+        } else {
+            return new ResponseEntity<>(playlistResponse.getStatusCode());
         }
     }
 

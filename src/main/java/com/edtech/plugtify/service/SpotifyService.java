@@ -214,14 +214,16 @@ public class SpotifyService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", value);
 
-        HttpEntity<String> httpEntity =
-                new HttpEntity<>("{\"name\":\"Plugtify Playlist\",\"description\":\"Playlist created with Plugtify\"}", headers);
+        SpotifyPlaylistRequest playlistRequest = new SpotifyPlaylistRequest("Plugtify Playlist", "Playlist created with Plugtify");
+
+        HttpEntity<SpotifyPlaylistRequest> httpEntity =
+                new HttpEntity<>(playlistRequest, headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        // List<HttpMessageConverter<?>> converters = new ArrayList<>();
-        // converters.add(new MappingJackson2HttpMessageConverter());
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.add(new MappingJackson2HttpMessageConverter());
 
-        // restTemplate.setMessageConverters(converters);
+        restTemplate.setMessageConverters(converters);
 
         ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 

@@ -196,14 +196,12 @@ public class SpotifyService {
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", value);
-        headers.add("Content-Type", "application/json");
 
-        MultiValueMap<String, String> bodyParameters = new LinkedMultiValueMap<>();
-        bodyParameters.add("data", "{\"name\": \"Plugtify Playlist\", \"description\": \"Playlist created with Plugtify\"}");
 
-        HttpEntity<MultiValueMap<String, String>> httpEntity =
-                new HttpEntity<>(bodyParameters, headers);
+        HttpEntity<String> httpEntity =
+                new HttpEntity<String>("{\"name\":\"Plugtify Playlist\", \"description\":\"Playlist created with Plugtify\"}", headers);
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());

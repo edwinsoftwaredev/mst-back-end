@@ -79,13 +79,18 @@ public class UserService {
 
     }
 
+    public void deleteUser(User user) {
+        this.userRepository.delete(user);
+        this.clearUserCaches(user);
+    }
+
     @Transactional(readOnly = true)
     public Optional<User> getCurrentUser() {
         return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneByLogin);
     }
 
     // Clear cache by the given cache names
-    public void clearUserCaches(User user) {
+    private void clearUserCaches(User user) {
         Objects.requireNonNull(this.cacheManager.getCache(this.userRepository.USER_BY_LOGIN_CACHE)).evict(user.getLogin());
         Objects.requireNonNull(this.cacheManager.getCache(this.userRepository.USER_BY_EMAIL_CACHE)).evict(user.getEmail());
     }

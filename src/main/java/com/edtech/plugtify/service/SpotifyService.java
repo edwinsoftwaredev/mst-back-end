@@ -16,11 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -114,6 +112,37 @@ public class SpotifyService {
     }
 
     /**
+     * Method to unfollow the current user for the given playlist
+     * @param user user that will unfollow a playlist
+     * @return ResponseEntity
+     */
+    public ResponseEntity<Void> unfollowPlaylist(User user) {
+        if(user.getToken() != null) {
+            Token userToken = user.getToken();
+
+            if(this.isTokenExpired(userToken)) {
+                this.refreshAccessToken(userToken);
+            }
+
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set("Authorization", userToken.getToken_type() + " " + userToken.getAccess_token());
+
+            HttpEntity httpEntity = new HttpEntity(httpHeaders);
+
+            Map<String, String> parametersMap = new HashMap<>();
+            parametersMap.put("playlist_id", URLEncoder.encode(user.getPlaylistId(), StandardCharsets.UTF_8));
+
+            UriComponentsBuilder uriComponentsBuilder =
+                    UriComponentsBuilder.fromUriString(SpotifyConstants.URL_UNFOLLOW_PLAYLIST);
+
+            RestTemplate restTemplate = new RestTemplate();
+            return restTemplate.exchange(uriComponentsBuilder.buildAndExpand(parametersMap).toUriString(), HttpMethod.DELETE, httpEntity, Void.class);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
      * check if user has a playlist
      * @param tracks track to add
      * @return the response
@@ -129,30 +158,18 @@ public class SpotifyService {
             }
 
             if(user.getPlaylistId() != null) {
-                ResponseEntity<Void> response = null;
+                ResponseEntity<Void> response;
 
-                try {
-                    response = this.replaceTrackPlaylist(tracks, user.getPlaylistId(), userToken);
-                } catch (UnsupportedEncodingException e) {
-                    throw new InternalServerErrorException(e.getMessage());
-                }
+                response = this.replaceTrackPlaylist(tracks, user.getPlaylistId(), userToken);
 
                 // validate if the tracks were replaced: for example the playlist was deleted
                 if(response.getStatusCodeValue() == 404 || response.getStatusCodeValue() == 304) {
-                    try {
-                        return this.createPlaylist(tracks, user, userToken);
-                    } catch (UnsupportedEncodingException e) {
-                        throw new InternalServerErrorException(e.getMessage());
-                    }
+                    return this.createPlaylist(tracks, user, userToken);
                 }
 
                 return response;
             } else {
-                try {
-                    return this.createPlaylist(tracks, user, userToken);
-                } catch (UnsupportedEncodingException e) {
-                    throw new InternalServerErrorException(e.getMessage());
-                }
+                return this.createPlaylist(tracks, user, userToken);
             }
         }).orElseThrow(UserNotFoundException::new);
     }
@@ -163,7 +180,7 @@ public class SpotifyService {
      * @param playlistId the playlist id
      * @return response
      */
-    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) throws UnsupportedEncodingException {
+    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) {
 
         SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).toArray(SpotifyTrackDTO[]::new);
 
@@ -173,14 +190,12 @@ public class SpotifyService {
         headers.add("Authorization", value);
         headers.add("Content-Type", "application/json");
 
-        String urlReplaceTracks = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks";
-
         Map<String, String> paramsReplaceTracks = new HashMap<>();
         paramsReplaceTracks.put("playlist_id", URLEncoder.encode(playlistId, StandardCharsets.UTF_8));
 
-        String uris = Arrays.stream(tracksLocal).map(track -> track.getUri()).collect(Collectors.joining(","));
+        String uris = Arrays.stream(tracksLocal).map(SpotifyTrackDTO::getUri).collect(Collectors.joining(","));
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(urlReplaceTracks)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(SpotifyConstants.URL_REPLACE_PLAYLIST)
                 .queryParam("uris", uris);
 
         HttpEntity httpEntityReplace = new HttpEntity(headers);
@@ -200,18 +215,9 @@ public class SpotifyService {
      * @param userToken tokens
      * @return ResponseEntity
      */
-    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user, Token userToken) throws UnsupportedEncodingException {
+    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user, Token userToken) {
 
         // creating playlist --> POST
-        String urlCreateList = "https://api.spotify.com/v1/users/{user_id}/playlists";
-
-        String newUrl = "https://api.spotify.com/v1/me/playlists";
-
-        Map<String, String> urlParams = new HashMap<>();
-        urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
-
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
-
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
         HttpHeaders headers = new HttpHeaders();
@@ -229,7 +235,7 @@ public class SpotifyService {
 
         restTemplate.setMessageConverters(converters);
 
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(newUrl, httpEntity, SpotifyPlaylistDTO.class);
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(SpotifyConstants.URL_CREATE_PLAYLIST, httpEntity, SpotifyPlaylistDTO.class);
 
         String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 
@@ -253,14 +259,14 @@ public class SpotifyService {
         parameterMap.add("refresh_token", userToken.getRefresh_token());
 
         HttpEntity<MultiValueMap<String, String>> httpEntity =
-                new HttpEntity<MultiValueMap<String, String>>(parameterMap, httpHeaders);
+                new HttpEntity<>(parameterMap, httpHeaders);
 
         ResponseEntity<TokenDTO> refreshedToken =
                 this.getTokenDTOAuthAndRefresh(SpotifyConstants.URL_REFRESH_TOKEN, httpEntity);
 
         if(refreshedToken.hasBody()) {
 
-            userToken.setAccess_token(refreshedToken.getBody().getAccess_token());
+            userToken.setAccess_token(Objects.requireNonNull(refreshedToken.getBody()).getAccess_token());
             userToken.setScope(refreshedToken.getBody().getScope());
             userToken.setExpires_in(refreshedToken.getBody().getExpires_in());
             userToken.setToken_type(refreshedToken.getBody().getToken_type());
@@ -297,7 +303,7 @@ public class SpotifyService {
             throw new InternalServerErrorException("Can't get recently played tracks");
         }
 
-        int cantTracks = tracksResponse.getBody().length;
+        int cantTracks = Objects.requireNonNull(tracksResponse.getBody()).length;
 
         for (SpotifyTrackDTO track: tracksResponse.getBody()) {
             acousticness = acousticness + track.getAudio_feature().getAcousticness();
@@ -308,7 +314,7 @@ public class SpotifyService {
             speechiness = speechiness + track.getAudio_feature().getSpeechiness();
             valence = valence + track.getAudio_feature().getValence();
             popularity = popularity + track.getPopularity();
-        };
+        }
 
         acousticness = acousticness / cantTracks;
         danceability = danceability / cantTracks;
@@ -317,12 +323,12 @@ public class SpotifyService {
         liveness = liveness / cantTracks;
         speechiness = speechiness / cantTracks;
         valence = valence / cantTracks;
-        popularity = (int) (popularity / cantTracks);
+        popularity = popularity / cantTracks;
 
         // get 5 random number between 0 and 49 to get the tracks in those indexs, and get the ids
         Random random = new Random();
 
-        String seedTracks = "";
+        String seedTracks;
         Set<String> seedsTracks = new HashSet<>();
 
         if(tracksResponse.getBody().length < 10) {
@@ -358,16 +364,14 @@ public class SpotifyService {
         ResponseEntity<SpotifyTrackArrayDTO> arrayTracksSimplified =
                 (ResponseEntity<SpotifyTrackArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyTrackArrayDTO.class, httpEntity));
 
-        List<SpotifyTrackDTO> listTracksSimplified = Arrays.stream(arrayTracksSimplified.getBody().getTracks())
+        List<SpotifyTrackDTO> listTracksSimplified = Arrays.stream(Objects.requireNonNull(arrayTracksSimplified.getBody()).getTracks())
                 .collect(Collectors.toList());
 
         // removing repeated tracks
-        Arrays.stream(tracksResponse.getBody()).forEach(spotifyTrackDTO -> {
-            listTracksSimplified.removeIf(track -> track.getId().equals(spotifyTrackDTO.getId()));
-        });
+        Arrays.stream(tracksResponse.getBody()).forEach(spotifyTrackDTO -> listTracksSimplified.removeIf(track -> track.getId().equals(spotifyTrackDTO.getId())));
 
         String ids = Arrays.stream(listTracksSimplified.toArray(SpotifyTrackDTO[]::new))
-                .map(track -> track.getId())
+                .map(SpotifyTrackDTO::getId)
                 .collect(Collectors.joining(","));
 
         // array of full object tracks
@@ -381,7 +385,7 @@ public class SpotifyService {
             throw new InternalServerErrorException("There was a problem getting the full object for each tracks");
         }
 
-        return new ResponseEntity<>(Arrays.stream(responseTracks.getBody().getTracks()).toArray(SpotifyTrackDTO[]::new), HttpStatus.OK) ;
+        return new ResponseEntity<>(Arrays.stream(Objects.requireNonNull(responseTracks.getBody()).getTracks()).toArray(SpotifyTrackDTO[]::new), HttpStatus.OK) ;
 
     }
 
@@ -411,9 +415,7 @@ public class SpotifyService {
         // Second, we get the full objects for each track recently played
 
         // --> getting the ids from responsePlayHistory for each track and save them in a String variable
-        String ids = Arrays.stream(responsePlayHistory.getBody().getItems()).map(historyObject -> {
-            return historyObject.getTrack().getId();
-        }).collect(Collectors.joining(",")); // separating each id with a ,
+        String ids = Arrays.stream(Objects.requireNonNull(responsePlayHistory.getBody()).getItems()).map(historyObject -> historyObject.getTrack().getId()).collect(Collectors.joining(",")); // separating each id with a ,
 
         // Third, we get the full track object for each id in the ids variable
 
@@ -438,10 +440,10 @@ public class SpotifyService {
         ResponseEntity<SpotifyAudioFeatureArrayDTO> responseTracksFeatures =
                 (ResponseEntity<SpotifyAudioFeatureArrayDTO>) this.getClientResponseEntity(this.getRequests(urlBuilder.toUriString(), SpotifyAudioFeatureArrayDTO.class, httpEntity));
 
-        SpotifyTrackDTO[] tracks = (SpotifyTrackDTO[]) Arrays.stream(responseTracks.getBody().getTracks()).peek(track -> {
+        SpotifyTrackDTO[] tracks = Arrays.stream(Objects.requireNonNull(responseTracks.getBody()).getTracks()).peek(track -> {
             // merge the track with its features
 
-            SpotifyAudioFeaturesDTO audioFeatures = Arrays.stream(responseTracksFeatures.getBody().getAudio_features())
+            SpotifyAudioFeaturesDTO audioFeatures = Arrays.stream(Objects.requireNonNull(responseTracksFeatures.getBody()).getAudio_features())
                     .filter(trackFeature -> trackFeature.getId().equals(track.getId())).collect(Collectors.toList()).get(0);
 
             track.setAudio_feature(audioFeatures);
@@ -461,7 +463,7 @@ public class SpotifyService {
 
         HttpHeaders httpHeaders = this.getHttpHeaders(userToken);
 
-        HttpEntity<Void> httpEntity = new HttpEntity<Void>(httpHeaders);
+        HttpEntity<Void> httpEntity = new HttpEntity<>(httpHeaders);
 
         return (ResponseEntity<SpotifyUserDTO>) this.getClientResponseEntity(this.getRequests(SpotifyConstants.URL_CURRENT_USER, SpotifyUserDTO.class, httpEntity));
     }
@@ -472,7 +474,6 @@ public class SpotifyService {
      * @param responseEntity response
      * @return the new ResponseEntity for the Front-End
      */
-    @SuppressWarnings("unchecked")
     private ResponseEntity<?> getClientResponseEntity(ResponseEntity<?> responseEntity) {
         return new ResponseEntity<>(responseEntity.getBody(), HttpStatus.OK);
     }
@@ -482,7 +483,7 @@ public class SpotifyService {
      * @param urlEndPoint endpoint
      * @param httpEntity httpEntity
      * @param object object type
-     * @return
+     * @return Http Response
      */
     private ResponseEntity<?> getRequests(String urlEndPoint, Class<?> object, HttpEntity<?> httpEntity) {
 
@@ -577,7 +578,7 @@ public class SpotifyService {
 
     /**
      * Method to get MessageConverter(s) for JSON and x-www-urlencoded
-     * @return
+     * @return List of Http Message converters
      */
     private List<HttpMessageConverter<?>> getMessageConverters() {
         List<HttpMessageConverter<?>> converters = new ArrayList<>();

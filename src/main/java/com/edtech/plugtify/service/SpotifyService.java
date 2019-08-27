@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -205,34 +206,40 @@ public class SpotifyService {
         Map<String, String> urlParams = new HashMap<>();
         urlParams.put("user_id", URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
 
-        System.out.println("--TEST--");
-        System.out.println(URLEncoder.encode(Objects.requireNonNull(this.getCurrentUser().getBody()).getId(), StandardCharsets.UTF_8));
-
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(urlCreateList);
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", value);
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", value);
 
         HttpEntity<String> httpEntity =
-                new HttpEntity<>("{\"name\":\"Plugtify Playlist\", \"description\":\"Playlist created with Plugtify\"}", headers);
+                new HttpEntity<>("{\"name\":\"Plugtify Playlist\",\"description\":\"Playlist created with Plugtify\"}", headers);
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 
-        String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = null;
 
-        user.setPlaylistId(playlistId);
+        try {
+            playlistResponse = restTemplate.postForEntity(uriBuilder.buildAndExpand(urlParams).toUriString(), httpEntity, SpotifyPlaylistDTO.class);
 
-        this.userRepository.save(user);
+            String playlistId = Objects.requireNonNull(playlistResponse.getBody()).getId();
 
-        if(playlistResponse.getStatusCodeValue() == 200 || playlistResponse.getStatusCodeValue() == 201) {
-            return this.replaceTrackPlaylist(tracks, playlistId, userToken);
-        } else {
-            return new ResponseEntity<>(playlistResponse.getStatusCode());
+            user.setPlaylistId(playlistId);
+
+            this.userRepository.save(user);
+
+            if(playlistResponse.getStatusCodeValue() == 200 || playlistResponse.getStatusCodeValue() == 201) {
+                return this.replaceTrackPlaylist(tracks, playlistId, userToken);
+            } else {
+                return new ResponseEntity<>(playlistResponse.getStatusCode());
+            }
+
+        } catch (RestClientException e) {
+            System.out.println(e.getMessage());
+            throw new RestClientException(e.getMessage());
         }
     }
 

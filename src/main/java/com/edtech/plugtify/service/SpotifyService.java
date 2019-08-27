@@ -20,6 +20,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
@@ -124,13 +126,13 @@ public class SpotifyService {
             if(user.getPlaylistId() != null) {
                 try {
                     this.replaceTrackPlaylist(tracks, user.getPlaylistId(), user);
-                } catch (UnsupportedEncodingException e) {
+                } catch (UnsupportedEncodingException | URISyntaxException e) {
                     e.printStackTrace();
                 }
             } else {
                 try {
                     this.createPlaylist(tracks, user);
-                } catch (UnsupportedEncodingException e) {
+                } catch (UnsupportedEncodingException | URISyntaxException e) {
                     e.printStackTrace();
                 }
             }
@@ -148,7 +150,7 @@ public class SpotifyService {
      * @param playlistId
      * @return
      */
-    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, User user) throws UnsupportedEncodingException {
+    public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, User user) throws UnsupportedEncodingException, URISyntaxException {
 
         SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).toArray(SpotifyTrackDTO[]::new);
 
@@ -193,14 +195,16 @@ public class SpotifyService {
      * @param
      * @return
      */
-    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user) throws UnsupportedEncodingException {
+    public ResponseEntity<Void> createPlaylist(SpotifyTrackDTO[] tracks, User user) throws UnsupportedEncodingException, URISyntaxException {
 
         Token userToken = this.getCurrentUserToken();
 
         // creating playlist --> POST
         String urlCreateList = "https://api.spotify.com/v1/users/"+this.getCurrentUser().getBody().getId()+"/playlists";
 
-        urlCreateList = URLEncoder.encode(urlCreateList, "UTF-8");
+        URI uri = new URI(urlCreateList);
+
+        System.out.println(uri.toString());
 
         if(this.isTokenExpired(userToken)) {
             this.refreshAccessToken(userToken);
@@ -217,7 +221,7 @@ public class SpotifyService {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
-        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(urlCreateList, httpEntity, SpotifyPlaylistDTO.class);
+        ResponseEntity<SpotifyPlaylistDTO> playlistResponse = restTemplate.postForEntity(uri, httpEntity, SpotifyPlaylistDTO.class);
 
         // setting tracks to the playlist  --> PUT
         String playlistId = playlistResponse.getBody().getId();

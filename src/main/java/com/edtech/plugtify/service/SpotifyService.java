@@ -19,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.swing.text.html.Option;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -479,7 +480,7 @@ public class SpotifyService {
      * @param responseEntity response
      * @return the new ResponseEntity for the Front-End
      */
-    private ResponseEntity<?> getClientResponseEntity(ResponseEntity<?> responseEntity) {
+    protected ResponseEntity<?> getClientResponseEntity(ResponseEntity<?> responseEntity) {
         return new ResponseEntity<>(responseEntity.getBody(), HttpStatus.OK);
     }
 
@@ -490,7 +491,7 @@ public class SpotifyService {
      * @param object object type
      * @return Http Response
      */
-    private ResponseEntity<?> getRequests(String urlEndPoint, Class<?> object, HttpEntity<?> httpEntity) {
+    protected ResponseEntity<?> getRequests(String urlEndPoint, Class<?> object, HttpEntity<?> httpEntity) {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setMessageConverters(this.getMessageConverters());
@@ -503,7 +504,7 @@ public class SpotifyService {
      * Method to get user spotify tokens or refresh access token
      * @return ResponseEntity<TokenDTO> tokens or token info
      */
-    private ResponseEntity<TokenDTO> getTokenDTOAuthAndRefresh(String urlEndPoint,
+    protected ResponseEntity<TokenDTO> getTokenDTOAuthAndRefresh(String urlEndPoint,
                                                                HttpEntity<MultiValueMap<String, String>> parametersHttpEntity) {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -518,7 +519,7 @@ public class SpotifyService {
      * Check if token is valid; if not try refresh token
      * @param userToken user Token entity info
      */
-    private boolean isTokenExpired(Token userToken) {
+    protected boolean isTokenExpired(Token userToken) {
         Timestamp checkTime =
                 Timestamp.from(userToken.getLastUpdateTime().toInstant().plusSeconds(userToken.getExpires_in()));
 
@@ -530,7 +531,7 @@ public class SpotifyService {
      * @param userToken userToken tokens details entity
      * @return HttpHeaders
      */
-    private HttpHeaders getHttpHeaders(Token userToken) {
+    protected HttpHeaders getHttpHeaders(Token userToken) {
 
         if(this.isTokenExpired(userToken)) {
             this.refreshAccessToken(userToken); // if needed this will refresh the access token

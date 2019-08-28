@@ -115,8 +115,8 @@ public class SpotifyService {
      * Method to unfollow the current user for the given playlist
      * @return ResponseEntity
      */
-    public ResponseEntity<Void> unfollowPlaylist() {
-        Optional<User> user = this.userService.getCurrentUser();
+    public ResponseEntity<Void> unfollowPlaylist(String principalName) {
+        Optional<User> user = this.userRepository.findOneByLogin(principalName);
 
         if(user.isEmpty()) {
             throw new UserNotFoundException();

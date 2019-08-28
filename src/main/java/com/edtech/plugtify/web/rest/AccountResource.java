@@ -62,7 +62,7 @@ public class AccountResource {
     @DeleteMapping("/delete-account")
     public ResponseEntity<Void> deleteCurrentUserAccount(Principal principal) {
 
-        this.spotifyService.unfollowPlaylist();
+        this.spotifyService.unfollowPlaylist(principal.getName());
 
         this.userService.deleteUser(principal.getName());
 

@@ -6,9 +6,12 @@ import com.edtech.plugtify.security.SecurityUtils;
 import com.edtech.plugtify.service.dto.UserDTO;
 import com.edtech.plugtify.web.rest.errors.EmailAlreadyUsedException;
 import com.edtech.plugtify.web.rest.errors.LoginAlreadyUsedException;
+import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,9 +82,22 @@ public class UserService {
 
     }
 
-    public void deleteUser(User user) {
-        this.userRepository.delete(user);
-        this.clearUserCaches(user);
+    /**
+     * Method to delete a user
+     * @param principalName login user
+     * @return Response Http
+     */
+    public ResponseEntity<Void> deleteUser(String principalName) {
+
+        Optional<User> user = this.userRepository.findOneByLogin(principalName);
+
+        if(user.isEmpty()){
+            throw new UserNotFoundException();
+        }
+
+        this.userRepository.delete(user.get());
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Transactional(readOnly = true) // this method is readOnly = true the transaction to delete a user that comes from this method will not have effect

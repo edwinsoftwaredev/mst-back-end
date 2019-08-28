@@ -61,21 +61,9 @@ public class AccountResource {
      */
     @DeleteMapping("/delete-account")
     public ResponseEntity<Void> deleteCurrentUserAccount(Principal principal) {
-        return this.userRepository
-                .findOneByLogin(principal.getName().toLowerCase().trim())
-                .map(user -> {
-                    if(user.getPlaylistId() == null) {
-                        this.userService.deleteUser(user);
-                        return new ResponseEntity<Void>(HttpStatus.OK);
-                    } else {
-                        if(this.spotifyService.unfollowPlaylist(user).getStatusCode().equals(HttpStatus.OK)) {
-                            this.userService.deleteUser(user);
-                            return new ResponseEntity<Void>(HttpStatus.OK);
-                        } else {
-                            return new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
-                        }
-                    }
-                })
-                .orElseThrow(UserNotFoundException::new);
+
+        this.spotifyService.unfollowPlaylist();
+
+        return this.userService.deleteUser(principal.getName());
     }
 }

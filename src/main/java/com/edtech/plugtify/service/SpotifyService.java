@@ -113,12 +113,17 @@ public class SpotifyService {
 
     /**
      * Method to unfollow the current user for the given playlist
-     * @param user user that will unfollow a playlist
      * @return ResponseEntity
      */
-    public ResponseEntity<Void> unfollowPlaylist(User user) {
-        if(user.getToken() != null) {
-            Token userToken = user.getToken();
+    public ResponseEntity<Void> unfollowPlaylist() {
+        Optional<User> user = this.userService.getCurrentUser();
+
+        if(user.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+
+        if(user.get().getToken() != null && user.get().getPlaylistId() != null) {
+            Token userToken = user.get().getToken();
 
             if(this.isTokenExpired(userToken)) {
                 this.refreshAccessToken(userToken);
@@ -130,7 +135,7 @@ public class SpotifyService {
             HttpEntity httpEntity = new HttpEntity(httpHeaders);
 
             Map<String, String> parametersMap = new HashMap<>();
-            parametersMap.put("playlist_id", URLEncoder.encode(user.getPlaylistId(), StandardCharsets.UTF_8));
+            parametersMap.put("playlist_id", URLEncoder.encode(user.get().getPlaylistId(), StandardCharsets.UTF_8));
 
             UriComponentsBuilder uriComponentsBuilder =
                     UriComponentsBuilder.fromUriString(SpotifyConstants.URL_UNFOLLOW_PLAYLIST);

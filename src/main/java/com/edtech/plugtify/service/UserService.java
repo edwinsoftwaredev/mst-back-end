@@ -85,21 +85,12 @@ public class UserService {
     /**
      * Method to delete a user
      * @param principalName login user
-     * @return Response Http
      */
-    public ResponseEntity<Void> deleteUser(String principalName) {
-
-        Optional<User> user = this.userRepository.findOneByLogin(principalName);
-
-        if(user.isEmpty()){
-            throw new UserNotFoundException();
-        }
-
-        this.userRepository.delete(user.get());
-
-        this.clearUserCaches(user.get());
-
-        return new ResponseEntity<>(HttpStatus.OK);
+    public void deleteUser(String principalName) {
+        this.userRepository.findOneByLogin(principalName).ifPresent(user -> {
+            this.userRepository.delete(user);
+            this.clearUserCaches(user);
+        });
     }
 
     @Transactional(readOnly = true) // this method is readOnly = true the transaction to delete a user that comes from this method will not have effect

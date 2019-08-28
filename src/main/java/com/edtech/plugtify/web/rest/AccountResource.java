@@ -64,6 +64,8 @@ public class AccountResource {
 
         this.spotifyService.unfollowPlaylist();
 
-        return this.userService.deleteUser(principal.getName());
+        this.userService.deleteUser(principal.getName());
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

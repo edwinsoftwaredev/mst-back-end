@@ -9,6 +9,9 @@ import com.edtech.plugtify.web.rest.errors.InternalServerErrorException;
 import com.edtech.plugtify.web.rest.errors.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -62,9 +65,17 @@ public class AccountResource {
     @DeleteMapping("/delete-account")
     public ResponseEntity<Void> deleteCurrentUserAccount(Principal principal) {
 
-        this.spotifyService.unfollowPlaylist(principal.getName());
+        String username;
 
-        this.userService.deleteUser(principal.getName());
+        if(principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        this.spotifyService.unfollowPlaylist(username);
+
+        this.userService.deleteUser(username);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

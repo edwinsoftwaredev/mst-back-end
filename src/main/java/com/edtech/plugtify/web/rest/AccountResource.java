@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
 
@@ -63,15 +64,9 @@ public class AccountResource {
      * @return Http Response
      */
     @DeleteMapping("/delete-account")
-    public ResponseEntity<Void> deleteCurrentUserAccount(Principal principal) {
+    public ResponseEntity<Void> deleteCurrentUserAccount(HttpServletRequest request) {
 
-        String username;
-
-        if(principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
-        } else {
-            username = principal.toString();
-        }
+        String username = request.getUserPrincipal().getName();
 
         this.spotifyService.unfollowPlaylist(username);
 

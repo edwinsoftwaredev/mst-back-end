@@ -188,7 +188,7 @@ public class SpotifyService {
      */
     public ResponseEntity<Void> replaceTrackPlaylist(SpotifyTrackDTO[] tracks, String playlistId, Token userToken) {
 
-        SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).toArray(SpotifyTrackDTO[]::new);
+        SpotifyTrackDTO[] tracksLocal = new ArrayList<>(Arrays.asList(tracks)).subList(0, 40).toArray(SpotifyTrackDTO[]::new);
 
         String value = userToken.getToken_type() + " " + userToken.getAccess_token();
 

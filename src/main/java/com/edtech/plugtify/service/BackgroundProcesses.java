@@ -37,8 +37,8 @@ public class BackgroundProcesses {
     private void updatePlaylists() {
         System.out.println("updatePlaylists() is running");
 
-        // token updated 1hr ago are updated
-        Set<User> users = this.userRepository.findAllTokensByDay(Timestamp.from(Instant.now().minusMillis(3600000)));
+        // token updated 1 day ago are updated
+        Set<User> users = this.userRepository.findAllTokensByDay(Timestamp.from(Instant.now().minusMillis(24*60*60*1000)));
 
         users.removeIf(user -> user.getPlaylistId() == null);
 

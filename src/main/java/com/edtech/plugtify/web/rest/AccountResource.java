@@ -64,9 +64,9 @@ public class AccountResource {
      * @return Http Response
      */
     @DeleteMapping("/delete-account")
-    public ResponseEntity<Void> deleteCurrentUserAccount(HttpServletRequest request) {
+    public ResponseEntity<Void> deleteCurrentUserAccount() {
 
-        String username = request.getUserPrincipal().getName();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         this.spotifyService.unfollowPlaylist(username);
 

@@ -97,6 +97,8 @@ public class UserService {
 
         this.userRepository.delete(user.get());
 
+        this.clearUserCaches(user.get());
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

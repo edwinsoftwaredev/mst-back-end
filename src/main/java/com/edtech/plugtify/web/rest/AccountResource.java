@@ -63,14 +63,12 @@ public class AccountResource {
      * Method to delete the current user account
      * @return Http Response
      */
-    @DeleteMapping("/delete-account")
-    public ResponseEntity<Void> deleteCurrentUserAccount() {
+    @DeleteMapping("/delete-account/{login}")
+    public ResponseEntity<Void> deleteCurrentUserAccount(@PathVariable("login") String login) {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        this.spotifyService.unfollowPlaylist(login);
 
-        this.spotifyService.unfollowPlaylist(username);
-
-        this.userService.deleteUser(username);
+        this.userService.deleteUser(login);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

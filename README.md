@@ -1,5 +1,5 @@
 # plugtify-back-end
-Plugtify Back-End Java/Spring
+Plugtify Back-End Java/Spring - Spotify API
 
 This repository contains the Back-End for the Plugtify Application.
 

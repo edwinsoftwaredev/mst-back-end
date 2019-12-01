@@ -2,7 +2,7 @@ server:
   port: 9090
 spring:
   datasource:
-    url: jdbc:mysql://${PLUGTIFY_DB_HOST}:${PLUGTIFY_DB_PORT}/plugtify?useUnicode=true&characterEncoding=UTF-8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC
+    url: jdbc:mysql://${PLUGTIFY_DB_HOST}:${PLUGTIFY_DB_PORT}/plugtify?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=false&serverTimezone=UTC
     username: root
     password: ${PLUGTIFY_DB_PASSWORD}
   resources:

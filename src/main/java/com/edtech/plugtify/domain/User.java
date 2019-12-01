@@ -11,6 +11,7 @@ import java.io.Serializable;
 
 /**
  * Entity: User
+ * Plugtify's users
  */
 
 @Entity
